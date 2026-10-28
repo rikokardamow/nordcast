@@ -17,7 +17,9 @@ cells = [
         "DK1, 20–26 Oct 2026 (Copenhagen days), newest vintage of each ISP. Top: the "
         "target, `SatisfiedDemand` (mFRR activated to cover the need, + up), with aFRR "
         "and mFRR requested beside it. Bottom: wind production minus Energinet's "
-        "day-ahead and 1-hour forecasts, the error that drives most of the imbalance. "
+        "day-ahead forecast, onshore and offshore apart: the 5-min feed and the "
+        "forecasts define offshore differently, so offshore runs a level above its "
+        "forecast and is shown less its weekly mean. "
         "Then the live scorecard: every call frozen since the record started, against "
         "the first print."
     ),
@@ -41,7 +43,8 @@ plt.rcParams.update({"figure.figsize": (10, 4), "axes.spines.top": False,
                      "axes.spines.right": False, "axes.grid": True, "grid.color": BAND})
 
 SERIES = ["satisfied_demand", "afrr_up_mw", "afrr_down_mw", "mfrr_up_mw", "mfrr_down_mw",
-          "wind_mw", "wind_fc_da_mw", "wind_fc_1h_mw"]
+          "wind_onshore_mw", "wind_onshore_fc_da_mw", "wind_onshore_fc_1h_mw",
+          "wind_offshore_mw", "wind_offshore_fc_da_mw"]
 with psycopg.connect(URL) as conn:
     frames = {
         s: pd.Series(dict(conn.execute(
@@ -70,8 +73,11 @@ top.set_ylabel("MW (+ up-regulation)")
 top.legend(loc="upper left", frameon=False, ncol=3)
 top.set_title("DK1 balancing, 20–26 Oct 2026", loc="left")
 
-bottom.plot(df.index, df.wind_mw - df.wind_fc_da_mw, color=BLUE, lw=0.9, label="wind − day-ahead forecast")
-bottom.plot(df.index, df.wind_mw - df.wind_fc_1h_mw, color=GREY, lw=0.9, label="wind − 1-hour forecast")
+on_err = df.wind_onshore_mw - df.wind_onshore_fc_da_mw
+off_err = df.wind_offshore_mw - df.wind_offshore_fc_da_mw
+bottom.plot(df.index, on_err, color=BLUE, lw=0.9, label="onshore − day-ahead forecast")
+bottom.plot(df.index, off_err - off_err.mean(), color=GREY, lw=0.9,
+            label=f"offshore − day-ahead forecast, less its mean ({off_err.mean():+.0f} MW)")
 bottom.axhline(0, color=GREY, lw=0.6)
 bottom.set_ylabel("MW")
 bottom.legend(loc="upper left", frameon=False, ncol=2)
@@ -85,8 +91,9 @@ fig.savefig("01_look.png", dpi=150, bbox_inches="tight")"""
     ),
     code(
         """pd.DataFrame({
-    "wind − day-ahead": [df.satisfied_demand.corr(df.wind_mw - df.wind_fc_da_mw)],
-    "wind − 1 hour": [df.satisfied_demand.corr(df.wind_mw - df.wind_fc_1h_mw)],
+    "onshore − day-ahead": [df.satisfied_demand.corr(on_err)],
+    "onshore − 1 hour": [df.satisfied_demand.corr(df.wind_onshore_mw - df.wind_onshore_fc_1h_mw)],
+    "offshore − day-ahead": [df.satisfied_demand.corr(off_err)],
 }, index=["corr with SatisfiedDemand"]).round(3)"""
     ),
     md(

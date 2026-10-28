@@ -62,8 +62,6 @@ class Series:
     forecast_types: tuple = ()  # Forecasts_5Min rows to sum
 
 
-WIND = ("Onshore Wind", "Offshore Wind")
-
 # series_id -> how it's built. DK1 only. Lags from the archive's first prints
 # (28 Oct 2026, padded) or the dataset's own description.
 SERIES = {
@@ -96,10 +94,20 @@ SERIES = {
         "DayAheadPrices", "TimeUTC", ("DayAheadPriceEUR",), _day_before_at(13, 0)
     ),
     # 5-min actuals post before each 5 minutes ends; the ISP is complete at its end
-    "energinet.dk1.wind_mw": Series(
+    # Onshore and offshore apart: the 5-min feed and the forecasts define
+    # "offshore" differently (DK1 offshore runs ~900 MW above its forecast,
+    # 27 Oct 2026), so each error is taken within its own type.
+    "energinet.dk1.wind_onshore_mw": Series(
         "ElectricityProdex5MinRealtime",
         "Minutes5UTC",
-        ("OnshoreWindPower", "OffshoreWindPower"),
+        ("OnshoreWindPower",),
+        _after_end(5),
+        resolution_min=5,
+    ),
+    "energinet.dk1.wind_offshore_mw": Series(
+        "ElectricityProdex5MinRealtime",
+        "Minutes5UTC",
+        ("OffshoreWindPower",),
         _after_end(5),
         resolution_min=5,
     ),
@@ -111,13 +119,21 @@ SERIES = {
         resolution_min=5,
     ),
     # "updated close to 18:00 local Danish time" for the following day
-    "energinet.dk1.wind_fc_da_mw": Series(
+    "energinet.dk1.wind_onshore_fc_da_mw": Series(
         "Forecasts_5Min",
         "Minutes5UTC",
         ("ForecastDayAhead",),
         _day_before_at(18, 30),
         resolution_min=5,
-        forecast_types=WIND,
+        forecast_types=("Onshore Wind",),
+    ),
+    "energinet.dk1.wind_offshore_fc_da_mw": Series(
+        "Forecasts_5Min",
+        "Minutes5UTC",
+        ("ForecastDayAhead",),
+        _day_before_at(18, 30),
+        resolution_min=5,
+        forecast_types=("Offshore Wind",),
     ),
     "energinet.dk1.solar_fc_da_mw": Series(
         "Forecasts_5Min",
@@ -128,13 +144,21 @@ SERIES = {
         forecast_types=("Solar",),
     ),
     # "might be updated until 1 minute before the forecast starts"
-    "energinet.dk1.wind_fc_1h_mw": Series(
+    "energinet.dk1.wind_onshore_fc_1h_mw": Series(
         "Forecasts_5Min",
         "Minutes5UTC",
         ("Forecast1Hour",),
         _before_last_5min(61),
         resolution_min=5,
-        forecast_types=WIND,
+        forecast_types=("Onshore Wind",),
+    ),
+    "energinet.dk1.wind_offshore_fc_1h_mw": Series(
+        "Forecasts_5Min",
+        "Minutes5UTC",
+        ("Forecast1Hour",),
+        _before_last_5min(61),
+        resolution_min=5,
+        forecast_types=("Offshore Wind",),
     ),
 }
 NOMINAL_LAG = {sid: s.lag for sid, s in SERIES.items()}

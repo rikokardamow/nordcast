@@ -24,6 +24,13 @@ dev = [
     "ruff>=0.17.2",
     "vcrpy>=9.2.0",
 ]
+models = [
+    "lightgbm>=4.6",
+    "mapie>=1.0",
+    "numpy>=2.3",
+    "pandas>=3.1.0",
+    "scikit-learn>=1.7",
+]
 reports = [
     "duckdb>=1.4",
     "ipykernel>=7.4.0",

@@ -33,12 +33,13 @@ def test_an_isp_with_a_missing_piece_is_left_out():
     assert energinet.isp_values(spec, rows5("SolarPower", [10, 20])) == {}
 
 
-def test_wind_forecast_sums_onshore_and_offshore_and_needs_both():
-    spec = energinet.SERIES["energinet.dk1.wind_fc_da_mw"]
-    both = rows5("ForecastDayAhead", [100, 100, 100], energinet.WIND)
-    assert energinet.isp_values(spec, both) == {ISP: 200}
-    one = rows5("ForecastDayAhead", [100, 100, 100], ["Onshore Wind"])
-    assert energinet.isp_values(spec, one) == {}
+def test_a_forecast_series_reads_only_its_own_type():
+    spec = energinet.SERIES["energinet.dk1.wind_onshore_fc_da_mw"]
+    rows = rows5("ForecastDayAhead", [100, 100, 100], ["Onshore Wind"])
+    rows += rows5("ForecastDayAhead", [900, 900, 900], ["Offshore Wind"])
+    assert energinet.isp_values(spec, rows) == {ISP: 100}
+    offshore_only = rows5("ForecastDayAhead", [900, 900, 900], ["Offshore Wind"])
+    assert energinet.isp_values(spec, offshore_only) == {}
 
 
 @pytest.mark.parametrize("series_id", sorted(energinet.SERIES))
