@@ -39,3 +39,6 @@ runs/
 
 # History cache for the backfill. Rebuilt by jobs/backfill.py.
 data/history/
+
+# Where the live loader got to in the archive.
+data/live_state.json

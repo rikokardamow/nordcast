@@ -1,17 +1,17 @@
 """Back up the record to a private git repo, off this Mac.
 
-The frozen calls are in this repo, but the rest of the record lives only in
-the local database: observation vintages, consensus rows, scores, the run
-log. EIA can't rebuild past vintages, so a lost disk would lose them for
-good. Each backup writes a plain-SQL dump, a manifest of row counts and a
-copy of data/raw/ into the clone at NORDCAST_BACKUP_REPO, then commits and pushes.
+The record lives only in the local database: observation vintages, frozen
+calls, scores, the run log. Energinet doesn't keep first prints, so a lost
+disk would lose them for good. Each backup writes the schema (pg_dump, in
+pre-data and post-data sections) and every table as CSV in primary-key
+order, observations split by series and month, the rest by month. A month
+that's over never changes again, so each commit is small and no file nears
+GitHub's 100 MB limit (a single dump of a million observations would).
 
-Git history is the retention: the tables are insert-only, so each dump
-differs from the last by a few lines, and nothing is pruned.
+Git history is the retention: the tables are insert-only, nothing is pruned.
 
-run() is called by every job that writes the record. It never raises, so a
-backup problem can't fail a freeze or a score; failures go to run_log as job
-'backup', which the Sunday review lists.
+run() never raises, so a backup problem can't fail a freeze or a score;
+failures go to run_log as job 'backup'.
 """
 
 import json
@@ -27,12 +27,24 @@ import psycopg
 from nordcast.runlog import logged
 
 LOCAL_DB = "postgresql://postgres:postgres@127.0.0.1:44332/postgres"
-TABLES = ["source", "series", "release", "observation", "forecast", "score", "run_log"]
+# table -> (primary key, time column the files are split on by month)
+TABLES = {
+    "source": ("source_id", None),
+    "series": ("series_id", None),
+    "release": ("release_id", "period_end"),
+    "observation": ("observation_id", "observed_for"),
+    "forecast": ("forecast_id", "target_period"),
+    "score": ("score_id", "first_print_at"),
+    "run_log": ("run_id", "started_at"),
+}
 SCRATCH = "nordcast_restore_check"
 # pg_dump 17.6+ writes a random \restrict key unless given one; a fixed key
-# keeps unchanged data byte-identical, so an unchanged record makes no commit.
+# keeps unchanged schema byte-identical, so an unchanged record makes no commit.
 RESTRICT_KEY = "nordcastbackup"
-DUMP = "nordcast.sql"
+DUMP = "schema.sql"
+MIGRATIONS = "migrations.sql"
+POST = "post.sql"
+DATA = "data"
 MANIFEST = "manifest.json"
 
 
@@ -45,19 +57,60 @@ def container():
     return f"supabase_db_{project}"
 
 
-def dump(out_path, dbname="postgres", run=subprocess.run):
-    """Schema and data of our tables, plus the migration history."""
-    with open(out_path, "wb") as out:
-        run(
-            [
-                "docker", "exec", container(), "pg_dump", "-U", "postgres",
-                "-d", dbname, "--schema=public", "--schema=supabase_migrations",
-                f"--restrict-key={RESTRICT_KEY}",
-            ],
-            stdout=out,
-            check=True,
-            timeout=300,
-        )  # fmt: skip
+def _pg_dump(dbname, *args):
+    return subprocess.run(
+        ["docker", "exec", container(), "pg_dump", "-U", "postgres", "-d", dbname,
+         f"--restrict-key={RESTRICT_KEY}", *args],
+        capture_output=True, check=True, timeout=300,
+    ).stdout  # fmt: skip
+
+
+def _parts(conn, table):
+    """[(relative csv path, where clause, params)] for one table."""
+    _, col = TABLES[table]
+    if col is None:
+        return [(f"{table}.csv", "true", ())]
+    month = f"to_char({col} at time zone 'UTC', 'YYYY-MM')"
+    if table == "observation":
+        rows = conn.execute(
+            f"select distinct series_id, {month} from observation order by 1, 2"
+        ).fetchall()
+        return [
+            (f"observation/{sid}/{m}.csv", f"series_id = %s and {month} = %s", (sid, m))
+            for sid, m in rows
+        ]
+    rows = conn.execute(f"select distinct {month} from {table} order by 1").fetchall()
+    return [(f"{table}/{m}.csv", f"{month} = %s", (m,)) for (m,) in rows]
+
+
+def dump(out_dir, url):
+    """Schema, migration history and every table as CSV, into out_dir."""
+    out_dir = Path(out_dir)
+    dbname = psycopg.conninfo.conninfo_to_dict(url)["dbname"]
+    schemas = ("--schema=public", "--schema=supabase_migrations")
+    (out_dir / DUMP).write_bytes(_pg_dump(dbname, *schemas, "--section=pre-data"))
+    (out_dir / POST).write_bytes(_pg_dump(dbname, *schemas, "--section=post-data"))
+    shutil.rmtree(out_dir / DATA, ignore_errors=True)
+    with psycopg.connect(url) as conn:
+        # supabase's migration history; a database built by the tests has none
+        has_history = conn.execute(
+            "select to_regnamespace('supabase_migrations') is not null"
+        ).fetchone()[0]
+        (out_dir / MIGRATIONS).write_bytes(
+            _pg_dump(dbname, "--schema=supabase_migrations", "--data-only")
+            if has_history
+            else b""
+        )
+        for table, (pk, _) in TABLES.items():
+            for rel, where, params in _parts(conn, table):
+                path = out_dir / DATA / rel
+                path.parent.mkdir(parents=True, exist_ok=True)
+                query = (
+                    f"copy (select * from {table} where {where} order by {pk})"
+                    " to stdout with (format csv, header)"
+                )
+                with open(path, "wb") as out, conn.cursor().copy(query, params) as copy:
+                    out.writelines(copy)
 
 
 def counts(conn):
@@ -86,11 +139,11 @@ def commit_and_push(repo, now):
     return True
 
 
-def back_up(conn, repo, now, dbname="postgres", raw="data/raw"):
+def back_up(conn, repo, now, url=LOCAL_DB, raw="data/raw"):
     repo = Path(repo)
     # Counts first: the dump can only hold as many rows or more.
     manifest = {"counts": counts(conn)}
-    dump(repo / DUMP, dbname)
+    dump(repo, url)
     (repo / MANIFEST).write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
     sync_raw(raw, repo / "raw")
     return commit_and_push(repo, now)
@@ -106,7 +159,7 @@ def run(reason, url=None):
     try:
         with logged(lambda: psycopg.connect(url), "backup") as log:
             with psycopg.connect(url) as conn:
-                committed = back_up(conn, repo, datetime.now(UTC))
+                committed = back_up(conn, repo, datetime.now(UTC), url)
             log.detail = f"{reason}: {'pushed' if committed else 'no change'}"
             print(f"backup ({reason}): {'pushed' if committed else 'no change'}")
             return committed
@@ -115,36 +168,63 @@ def run(reason, url=None):
         return False
 
 
-def restore_check(dump_path, manifest, admin_url=LOCAL_DB, scratch=SCRATCH):
-    """Load the dump into a scratch database and compare row counts with the
+def _psql(dbname, sql_path):
+    with open(sql_path, "rb") as fd:
+        loaded = subprocess.run(
+            [
+                # supabase_admin, the image's real superuser: the dump sets
+                # default privileges for it, which postgres may not do.
+                "docker", "exec", "-i", container(), "psql", "-U", "supabase_admin",
+                "-d", dbname, "-q", "-v", "ON_ERROR_STOP=1",
+            ],
+            stdin=fd, capture_output=True, text=True, timeout=300,
+            check=False,  # checked below, to report psql's own error line
+        )  # fmt: skip
+    if loaded.returncode != 0:
+        errors = [ln for ln in loaded.stderr.splitlines() if "ERROR" in ln]
+        raise RuntimeError(f"restore failed: {(errors or [loaded.stderr])[0][:300]}")
+
+
+def restore(backup_dir, url):
+    """Load a backup into the empty database at url: schema, data, then the
+    triggers and constraints, so loading doesn't re-run the insert triggers."""
+    backup_dir = Path(backup_dir)
+    dbname = psycopg.conninfo.conninfo_to_dict(url)["dbname"]
+    # The dump creates public itself; a new database already has an empty one.
+    with psycopg.connect(url, autocommit=True) as conn:
+        conn.execute("drop schema public cascade")
+    _psql(dbname, backup_dir / DUMP)
+    _psql(dbname, backup_dir / MIGRATIONS)
+    with psycopg.connect(url) as conn:
+        for table, (pk, _) in TABLES.items():
+            files = sorted((backup_dir / DATA).glob(f"{table}.csv")) + sorted(
+                (backup_dir / DATA / table).rglob("*.csv")
+            )
+            for path in files:
+                with conn.cursor().copy(
+                    f"copy {table} from stdin with (format csv, header)"
+                ) as copy:
+                    copy.write(path.read_bytes())
+            seq = conn.execute(
+                "select pg_get_serial_sequence(%s, %s)", (table, pk)
+            ).fetchone()[0]
+            if seq:
+                conn.execute(
+                    f"select setval(%s, coalesce((select max({pk}) from {table}), 0) + 1, false)",
+                    (seq,),
+                )
+    _psql(dbname, backup_dir / POST)
+
+
+def restore_check(backup_dir, manifest, admin_url=LOCAL_DB, scratch=SCRATCH):
+    """Load the backup into a scratch database and compare row counts with the
     manifest. Returns {table: (expected at least, found)} for every mismatch."""
     with psycopg.connect(admin_url, autocommit=True) as admin:
         admin.execute(f"drop database if exists {scratch} with (force)")
         admin.execute(f"create database {scratch}")
     scratch_url = psycopg.conninfo.make_conninfo(admin_url, dbname=scratch)
     try:
-        # The dump creates public itself; a new database already has an empty one.
-        with psycopg.connect(scratch_url, autocommit=True) as conn:
-            conn.execute("drop schema public cascade")
-        with open(dump_path, "rb") as fd:
-            loaded = subprocess.run(
-                [
-                    # supabase_admin, the image's real superuser: the dump sets
-                    # default privileges for it, which postgres may not do.
-                    "docker", "exec", "-i", container(), "psql", "-U", "supabase_admin",
-                    "-d", scratch, "-q", "-v", "ON_ERROR_STOP=1",
-                ],
-                stdin=fd,
-                capture_output=True,
-                text=True,
-                timeout=300,
-                check=False,  # checked below, to report psql's own error line
-            )  # fmt: skip
-        if loaded.returncode != 0:
-            errors = [ln for ln in loaded.stderr.splitlines() if "ERROR" in ln]
-            raise RuntimeError(
-                f"restore failed: {(errors or [loaded.stderr])[0][:300]}"
-            )
+        restore(backup_dir, scratch_url)
         with psycopg.connect(scratch_url) as conn:
             found = counts(conn)
     finally:
@@ -184,7 +264,7 @@ def review_line(repo, now, admin_url=LOCAL_DB, scratch=SCRATCH):
         )
     try:
         manifest = json.loads((repo / MANIFEST).read_text())
-        bad = restore_check(repo / DUMP, manifest, admin_url, scratch)
+        bad = restore_check(repo, manifest, admin_url, scratch)
     except Exception as exc:  # noqa: BLE001 - report, don't crash the review
         return f"{head}; RESTORE FAILED: {type(exc).__name__}: {exc}"
     if bad:

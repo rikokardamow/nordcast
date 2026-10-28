@@ -101,7 +101,10 @@ def append(repo, source, time_col, records, pulled_at):
             # a column Energinet adds or drops shows up as nulls, not a crash
             table = pa.concat_tables([old, table], promote_options="permissive")
         path.parent.mkdir(parents=True, exist_ok=True)
-        pq.write_table(table, path)
+        # write then rename, so a reader never sees a half-written file
+        tmp = path.with_suffix(".parquet.tmp")
+        pq.write_table(table, tmp)
+        os.replace(tmp, path)
         added += len(new)
     return added
 

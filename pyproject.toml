@@ -24,3 +24,10 @@ dev = [
     "ruff>=0.17.2",
     "vcrpy>=9.2.0",
 ]
+reports = [
+    "duckdb>=1.4",
+    "ipykernel>=7.4.0",
+    "matplotlib>=3.11.2",
+    "nbconvert>=7.17.2",
+    "pandas>=3.1.0",
+]
