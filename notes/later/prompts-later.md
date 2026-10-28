@@ -1,0 +1,32 @@
+append to the end of prompt-nordcast.md and prompt-gasbook.md, after the last numbered step. ~/supply-or-demand must be cloned next to the repo.
+
+---
+
+12. risk and trading layers, per notes/risk-trading-layers.md. before anything here, read `.claude/skills/energy-analyst/` in full and `~/supply-or-demand/specs/00_TRADING_CONVENTIONS.md`; where they set a convention, follow it over the notes. then copy, not import, from `~/supply-or-demand/core/`: `systematic.py`, `backtest.py`, `strategies.py` (the shape only), `risk.py`, `risk_desk.py`, `vol.py`, `journal.py`, `ledger.py`, `curve.py`, and the chart primitives from `theme.py` into `src/<pkg>/layers/`. bring their tests across (`~/supply-or-demand/tests/test_core_*.py`) and make them pass unchanged before changing a line; the acceptance numbers in specs 21, 22 and 24 are the tests. the layers read the record through `value_asof` and the scorecard; they never write to observation or forecast.
+
+do the layers one at a time, in order, and stop after each so I can read the notebook and the number:
+
+- L1 `notebooks/10_position.ipynb`: the record's own calls as the signal, `reaction` sizing, the conviction filter from the q10–q90 band, the control strategy (persistence for nordcast, consensus for gasbook), guardrails for stale feed / shifted report. test: `build_positions` raises on a missing input, never flat.
+- L2 `notebooks/11_pnl.ipynb`: `backtest` with the two acceptance guards as tests, lagged positions, stated costs and roll rule, attribution split, fractionation by the conditioners the record stores. chart: cumulative pnl vs control with scorecard mae on the second axis. number: pnl per unit of mae improvement.
+- L3 `notebooks/12_risk.ipynb`: var/es with kupiec and christoffersen, hs as the failing control, `compare_models` matrix, limits written to `notes/limits.md` before any live position, `scenarios.yaml` with the scenarios in the notes, margin stress for gasbook. chart: var fan with exceptions and the pass/fail matrix. number: exceptions vs expected at 1 %.
+- L4 `notebooks/13_book.ipynb`: the synthetic book (wind park for nordcast; ccgt + supplier load for gasbook, with dk1 day-ahead read from nordcast's store), hedge programs, `hedge_effectiveness` rolling 60d, basis and shape risk, black76/bachelier collar and three-way for gasbook with greeks via `exposure_tree`. number: €/mwh imbalance cost saved (nordcast); hedge effectiveness and residual var (gasbook).
+- L5 `journal`: `log_signal_trade` wired to every strategy flip from L1, snapshot at as_of (test), reviews in the replay voice, the kardamow ledger with `parse_gauge` tested on one real article close.
+
+each layer: notebook → `jobs/layer_<n>.py` → `docs/layers/<n>.html` (plotly, interactive, the parameters a reader would move as controls) → only then a page. every card carries estimation window, last refit, out-of-sample status vs the named benchmark, exception count, structural-break date. degenerate inputs raise; nothing is substituted. no position sizes in anything that goes to docs/.
+append to the end of prompt-nordcast.md and prompt-gasbook.md, after step 12. ~/energy-forecasting must be cloned next to the repo (for site/).
+
+---
+
+13. rust core, per notes/stack-web-rust.md. only after the record has its first scored week. create `rust/<crate>/` (nordcast: `nordbook`; gasbook: `gasbook-core`) as a cargo crate with a pyo3 module built by maturin, imported in python as `<pkg>._<crate>`. build in this order and stop after each:
+
+  a. `book.rs`, `order.rs`, `matching.rs`: limit order book, price-time priority, limit/market/ioc/fok/iceberg, cancel, amend (loses priority unless qty down). gasbook adds outright + calendar-spread legs with implied-in/implied-out matching. tests: priority, partial fills, iceberg refresh, cancel resting, gate closure / expiry rejects; for gasbook, an implied spread price equals the outright difference. a criterion bench; tell me orders/s on the mac mini.
+  b. pyo3 binding exposing `OrderBook`, `submit`, `cancel`, `snapshot(depth)`, `fills()`; pytest mirrors of every rust test against the binding.
+  c. nordcast: `hawkes.rs` (multivariate, ogata thinning), `flow.rs`, `execution.rs` (twap, almgren-chriss, hawkes-aware), `impact.rs` (propagator), `replay.rs` on the dk1 idc product calendar. parameters from the papers named in the notes, with the page/table each number came from in a comment; liquidity scale factor stated once. gasbook: `curve.rs`, `two_factor.rs` (schwartz–smith sim + kalman fit), `storage/intrinsic.rs`, `storage/lsm.rs` (rayon, laguerre basis), `options.rs` (black76, bachelier, kirk), `risk.rs`. tests: lsm ≥ intrinsic on a known case; put–call parity ±1e-8; bachelier atm (F=K, T=1, r=0, σ=5) = 1.9947; kalman fit recovers parameters on simulated data within a stated tolerance.
+  d. one notebook that uses it: nordcast `notebooks/20_execution_frontier.ipynb` (50 mw revision, cost vs urgency, three schedules, labelled simulated); gasbook `notebooks/20_storage_value.ipynb` (intrinsic vs lsm over history for the synthetic 1 bcf facility).
+  e. ci: `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test`, `maturin build`, then pytest.
+
+14. web, per notes/stack-web-rust.md. copy `~/energy-forecasting/site/` whole as the starting point (app router, supabase read-only rls role, tokens.css, chartTheme.ts, components, vitest, a11y script), point it at this repo's supabase, and rename. build the record pages first and stop: `/`, the per-call page (`/isp/[ts]` or `/storage/[week]`), `/scorecard`, `/methodology`, `/data/...`. same states, same revalidate-on-score hook, same licence_class view check. tests copied and passing before any new page.
+
+then the wasm `/book` page: build the crate with a `wasm` feature via `wasm-pack build --target web`, commit the output under `site/public/wasm/` with a hash manifest rebuilt in ci, and a react page with a depth ladder, a trade tape and an execution replay scrubber (nordcast) or a spread ladder with implied prices and a roll replay (gasbook). every chart on it carries "simulated book" and the calibration source. a reader can move urgency / spread / depth and the frontier updates in the browser with no server.
+
+then `/replay` (nordcast) or `/premium`, `/eu-path`, `/curve`, `/storage-value` (gasbook), then the layer pages only as each layer earns one. next 16 (turbopack; wasm loaded in a `'use client'` component via `init()`, no webpack config), react 19, typescript strict, pnpm. no client-side secrets; no order entry; no scraped depth.
