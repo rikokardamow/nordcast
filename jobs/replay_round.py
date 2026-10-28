@@ -24,7 +24,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from statsmodels.tsa.stattools import adfuller, pacf
 
-from nordcast import freeze, replay
+from nordcast import features, freeze, model, replay
 from nordcast.baselines import TARGET
 
 NAVY, BLUE, GREY, BAND = "#0F2A4A", "#1F5FBF", "#7D8996", "#DCE3EC"
@@ -98,6 +98,8 @@ notes += [
 ]
 
 # 2-4. forecast, score, diagnose, per horizon
+with psycopg.connect(DB_URL) as conn:
+    pit = features.load(conn, start - timedelta(days=35), end, [TARGET])
 lines, diag_md = [], [f"# {name} – diagnostics\n"]
 for h in freeze.HORIZONS:
     df = pd.read_parquet(Path("data/training") / f"h{h}.parquet")
@@ -108,12 +110,7 @@ for h in freeze.HORIZONS:
         ]  # correlations on the training window, when it exists
         base = tr if len(tr) > 500 else None
         if base is not None:
-            corr = (
-                base.drop(columns=["target", "y_dir", "pers_dir"])
-                .corrwith(base.y)
-                .drop("y")
-                .sort_values()
-            )
+            corr = model.X(base).corrwith(base.y).sort_values()  # features only
             notes.append(
                 "- correlation with the target (training rows, 15 min): "
                 + ", ".join(f"{k} {v:+.2f}" for k, v in corr.items() if abs(v) > 0.05)
@@ -123,7 +120,7 @@ for h in freeze.HORIZONS:
                 "- feature correlations: no training rows before this round (the clean window starts 1 oct 2025); the next rounds report them."
             )
     for m in methods:
-        pred = replay.METHODS[m](rows, train)
+        pred = replay.METHODS[m](rows, train, {"pit": pit, "horizon": h, "all": df})
         s = replay.scorecard(rows, pred)
         lines.append({"round": name, "method": m, "h": h, **s})
         d = replay.diagnostics(rows, pred)
@@ -133,6 +130,10 @@ for h in freeze.HORIZONS:
             + ", ".join(f"{k}: {v:.0f}" for k, v in d["by_hour"].items()),
             "\nmae by onshore wind error at the freeze (mw, actual − day-ahead):\n",
             "```\n" + d["by_wind"].round(1).to_string() + "\n```",
+            "\nmae either side of the 4 mar 2026 break (SatisfiedDemand: demand -> activated): "
+            + ", ".join(
+                f"{k}: {v:.1f} mw (n {n})" for k, (v, n) in d["by_regime"].items()
+            ),
             "\nresidual acf: "
             + ", ".join(f"lag {k} {v:.2f}" for k, v in d["acf"].items()),
             "\nten biggest misses:\n",

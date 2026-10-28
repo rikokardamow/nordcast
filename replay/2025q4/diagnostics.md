@@ -17,6 +17,8 @@ wind_onshore_err_da_last
 (300.0, inf]              2672  133.1
 ```
 
+mae either side of the 4 mar 2026 break (SatisfiedDemand: demand -> activated): before: 128.7 mw (n 8825)
+
 residual acf: lag 1 0.62, lag 2 0.27, lag 4 -0.43, lag 8 -0.04, lag 96 0.06
 
 ten biggest misses:
@@ -51,6 +53,8 @@ wind_onshore_err_da_last
 (300.0, inf]              2671  139.7
 ```
 
+mae either side of the 4 mar 2026 break (SatisfiedDemand: demand -> activated): before: 134.8 mw (n 8825)
+
 residual acf: lag 1 0.68, lag 2 0.35, lag 4 -0.24, lag 8 -0.12, lag 96 0.07
 
 ten biggest misses:
@@ -84,6 +88,8 @@ wind_onshore_err_da_last
 (100.0, 300.0]            2136  138.1
 (300.0, inf]              2669  145.1
 ```
+
+mae either side of the 4 mar 2026 break (SatisfiedDemand: demand -> activated): before: 138.3 mw (n 8825)
 
 residual acf: lag 1 0.71, lag 2 0.47, lag 4 -0.00, lag 8 -0.31, lag 96 0.07
 
