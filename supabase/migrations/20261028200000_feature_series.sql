@@ -1,0 +1,36 @@
+-- Feature series for the backfill (step 2) and the eSett cross-check. DK1,
+-- 15-min ISP level; 5-min feeds are averaged into the ISP before loading.
+insert into source (source_id, name, licence_class, licence, attribution, url) values
+    ('esett', 'eSett Oy, Nordic imbalance settlement', 'open',
+     'eSett open data terms of use', 'Data: eSett Open Data',
+     'https://opendata.esett.com/');
+
+insert into series (series_id, source_id, code, name, unit, frequency) values
+    ('energinet.dk1.imbalance_price_eur', 'energinet', 'ImbalancePrice.ImbalancePriceEUR.DK1',
+     'DK1 imbalance price', 'EUR/MWh', '15min'),
+    ('energinet.dk1.afrr_up_mw', 'energinet', 'ImbalancePrice.aFRRUpMW.DK1',
+     'DK1 aFRR up activated', 'MW', '15min'),
+    ('energinet.dk1.afrr_down_mw', 'energinet', 'ImbalancePrice.aFRRDownMW.DK1',
+     'DK1 aFRR down activated (negative)', 'MW', '15min'),
+    ('energinet.dk1.mfrr_up_mw', 'energinet', 'MfrrEnergyActivationMarket.TotalmFRRUpMW.DK1',
+     'DK1 mFRR up, total requested', 'MW', '15min'),
+    ('energinet.dk1.mfrr_down_mw', 'energinet', 'MfrrEnergyActivationMarket.TotalmFRRDownMW.DK1',
+     'DK1 mFRR down, total requested (positive)', 'MW', '15min'),
+    ('energinet.dk1.da_price_eur', 'energinet', 'DayAheadPrices.DayAheadPriceEUR.DK1',
+     'DK1 day-ahead price', 'EUR/MWh', '15min'),
+    ('energinet.dk1.wind_mw', 'energinet', 'ElectricityProdex5MinRealtime.Wind.DK1',
+     'DK1 wind production, onshore + offshore, ISP mean', 'MW', '15min'),
+    ('energinet.dk1.solar_mw', 'energinet', 'ElectricityProdex5MinRealtime.SolarPower.DK1',
+     'DK1 solar production, ISP mean', 'MW', '15min'),
+    ('energinet.dk1.wind_fc_da_mw', 'energinet', 'Forecasts_5Min.ForecastDayAhead.Wind.DK1',
+     'DK1 wind day-ahead forecast, ISP mean', 'MW', '15min'),
+    ('energinet.dk1.solar_fc_da_mw', 'energinet', 'Forecasts_5Min.ForecastDayAhead.Solar.DK1',
+     'DK1 solar day-ahead forecast, ISP mean', 'MW', '15min'),
+    ('energinet.dk1.wind_fc_1h_mw', 'energinet', 'Forecasts_5Min.Forecast1Hour.Wind.DK1',
+     'DK1 wind 1-hour forecast, ISP mean', 'MW', '15min'),
+    ('energinet.dk1.mfrr_request', 'energinet', 'mfrrRequest.DK1',
+     'DK1 mFRR request to the AOF, every issue a vintage (sign unverified)', 'MW', '15min'),
+    ('esett.dk1.imbalance_price_eur', 'esett', 'EXP14.imblSalesPrice.DK1',
+     'DK1 imbalance price (eSett)', 'EUR/MWh', '15min'),
+    ('esett.dk1.direction', 'esett', 'EXP14.mainDirRegPowerPerMBA.DK1',
+     'DK1 main direction of regulation (eSett)', 'direction', '15min');

@@ -1,0 +1,41 @@
+# Secrets and the env template. Nothing env-related is tracked.
+.env
+.env.*
+
+# Local working files, kept out of git.
+CLAUDE.md
+.claude/
+.local/
+
+# Python and uv
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Next.js and Node
+node_modules/
+.next/
+.vercel/
+
+# Supabase local state
+supabase/.branches/
+supabase/.temp/
+
+# macOS and editors
+.DS_Store
+.vscode/
+.idea/
+
+# Raw pulls. Kept locally, rebuilt by the jobs.
+data/raw/
+
+# Run reports: one folder per job run, kept locally.
+runs/
+
+# History cache for the backfill. Rebuilt by jobs/backfill.py.
+data/history/
