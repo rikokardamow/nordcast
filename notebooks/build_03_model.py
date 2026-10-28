@@ -34,12 +34,12 @@ D, M = Path("../data/training"), Path("../data/models")
 NAVY, BLUE, GREY, BAND = "#0F2A4A", "#1F5FBF", "#7D8996", "#DCE3EC"
 plt.rcParams.update({"figure.figsize": (10, 4), "axes.spines.top": False,
                      "axes.spines.right": False, "axes.grid": True, "grid.color": BAND})
-manifest = json.loads((M / "manifest.json").read_text())
+manifest = json.loads((M / "manifest-lightgbm-v1.json").read_text())
 rows, preds = [], {}
 for h in (15, 30, 60):
     df = pd.read_parquet(D / f"h{h}.parquet")
     _, _, val = model.split(df)
-    m = pickle.loads((M / f"holdout-h{h}.pkl").read_bytes())
+    m = pickle.loads((M / f"holdout-lightgbm-v1-h{h}.pkl").read_bytes())
     pred = m.predict(val)
     preds[h] = (val, pred, m)
     rows.append({"h": h, "method": "lightgbm-v1", **model.score_frame(val, pred)})

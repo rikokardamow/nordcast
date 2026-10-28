@@ -195,11 +195,24 @@ def pnl(df, called, mw=10):
     return float(np.sum(sign[ok] * mw * 0.25 * spread[ok]))
 
 
-def select_and_fit(df, horizon, grid=GRID):
+def split_since(df, since=None):
+    """split(), with fit and calibrate cut to targets from `since` (75/25 of
+    what's left before the validation slice). Validation is unchanged, so a
+    shorter window is scored on exactly the same ISPs."""
+    fit, calibrate, validate = split(df)
+    if since is None:
+        return fit, calibrate, validate
+    before = pd.concat([fit, calibrate])
+    before = before[before.target >= since]
+    a = int(len(before) * 0.75)
+    return before.iloc[:a], before.iloc[a:], validate
+
+
+def select_and_fit(df, horizon, grid=GRID, since=None):
     """Choose volume settings by pinball and direction settings by Brier, each
     on the last 20 %. Returns (model fitted on the first 60 % for the
     validation scorecard, final model on the whole window, the grid's results)."""
-    fit, calibrate, validate = split(df)
+    fit, calibrate, validate = split_since(df, since)
     results = []
     for params in grid:
         m = _fit(horizon, {"volume": params, "direction": params}, fit, calibrate)

@@ -30,6 +30,7 @@ models = [
     "numpy>=2.3",
     "pandas>=3.1.0",
     "scikit-learn>=1.7",
+    "statsmodels>=0.14",
 ]
 reports = [
     "duckdb>=1.4",

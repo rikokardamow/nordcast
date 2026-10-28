@@ -62,3 +62,12 @@ class Stub:
     def predict(self, df):
         return pd.DataFrame({"q10": 0.0, "q50": 0.0, "q90": 0.0, "p_down": 1 / 3,
                              "p_none": 1 / 3, "p_up": 1 / 3}, index=df.index)  # fmt: skip
+
+
+def test_a_later_start_keeps_the_same_validation_slice():
+    df = frame(100)
+    since = df.target.sort_values().iloc[50]
+    _, _, val = model.split(df)
+    fit, cal, val2 = model.split_since(df, since)
+    assert val2.equals(val)
+    assert fit.target.min() >= since and len(fit) + len(cal) == 30

@@ -35,6 +35,8 @@ version:        code c775fdb + uncommitted step-4 work (features.py, model.py, j
                 artefacts data/models/lightgbm-v1-h{15,30,60}.pkl sha256
                 h15 db327da0b1b40b02…, h30 c9ecf0d189d719af…, h60 a067374958c4c99a… (full in manifest.json)
 changes:        28 oct 2026 first version.
+                28 oct 2026 tried: post-4-mar-2026 window only. worse at every horizon (pinball 33.4 vs
+                33.2 at 15 min, 35.0 vs 34.3 at 60). kept the pooled window.
 ```
 
 ## result on the last 20 % (10 aug – 27 oct 2026, 7,522 isps), notebooks/03_model.ipynb

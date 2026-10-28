@@ -22,6 +22,9 @@ pretraining:    n/a
 validation:     not run.
 version:        as lightgbm-volume-v1 (the direction model is in the same artefact)
 changes:        28 oct 2026 first version.
+                28 oct 2026 tried: fit on the post-4-mar-2026 window only (same validation slice). worse at
+                every horizon (brier 0.682 vs 0.662 at 15 min; 0.693 at 60, no better than constant
+                shares) and it still calls none on 0-0.3 % of isps. kept the pooled window.
 ```
 
 ## result on the last 20 % (10 aug – 27 oct 2026, 7,522 isps), notebooks/03_model.ipynb
@@ -34,4 +37,4 @@ optimistic, as for volume. pnl: 10 mw open in the called direction, settled at t
 | 30 | 0.427 / 0.422 / 0.420 | 0.671 / 1.155 / 0.691 | 25,187 / 202,746 |
 | 60 | 0.424 / 0.406 / 0.420 | 0.681 / 1.188 / 0.691 | −13,305 / 142,300 |
 
-a perfect direction call would have made 1,081,220 eur on the same window, so the money is in the up isps (mean spread +97 eur/mwh) and persistence catches more of them by holding the last direction through runs. next to try: fit on the post-4-mar-2026 window only, or weight it, and use the probabilities with a threshold instead of the argmax.
+a perfect direction call would have made 1,081,220 eur on the same window, so the money is in the up isps (mean spread +97 eur/mwh) and persistence catches more of them by holding the last direction through runs. the post-4-mar-2026 fit was tried and was worse (changes, above). none is 28 % of the last 20 % against 42 % down, so it is rarely the most probable class even when its probability is right: the argmax rarely picks it by construction. next to try: a threshold on p_none, or recency weights, instead of cutting the window.
