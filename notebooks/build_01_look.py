@@ -14,12 +14,12 @@ md, code = nbf.v4.new_markdown_cell, nbf.v4.new_code_cell
 cells = [
     md(
         "# 01 – a first look\n\n"
-        "DK1, 20–26 Oct 2026 (Copenhagen days), newest vintage of each ISP. Top: the "
-        "target, `SatisfiedDemand` (mFRR activated to cover the need, + up), with aFRR "
-        "and mFRR requested beside it. Bottom: wind production minus Energinet's "
-        "day-ahead forecast, onshore and offshore apart: the 5-min feed and the "
-        "forecasts define offshore differently, so offshore runs a level above its "
-        "forecast and is shown less its weekly mean. "
+        "DK1, 20–26 Oct 2026 (Copenhagen days), newest vintage of each quarter-hour. Top: the "
+        "target, the balancing energy Energinet activated to cover the system imbalance "
+        "(`SatisfiedDemand`, positive = up-regulation), with the automatic reserve (aFRR) "
+        "beside it. Bottom: wind production minus Energinet's day-ahead forecast, onshore "
+        "and offshore apart: the 5-min feed and the forecasts define offshore differently, "
+        "so offshore runs a level above its forecast and is shown less its weekly mean. "
         "Then the live scorecard: every call frozen since the record started, against "
         "the first print."
     ),
@@ -62,28 +62,72 @@ df = pd.DataFrame(frames).tz_convert(CPH)
 df.describe().round(1)"""
     ),
     code(
-        """fig, (top, bottom) = plt.subplots(2, 1, figsize=(11, 6.5), sharex=True,
-                                   gridspec_kw={"height_ratios": [3, 2]})
-top.plot(df.index, df.satisfied_demand, color=NAVY, lw=1.2, label="SatisfiedDemand (target)")
-top.plot(df.index, df.afrr_up_mw + df.afrr_down_mw, color=BLUE, lw=0.9, label="aFRR, up + down")
-top.plot(df.index, df.mfrr_up_mw - df.mfrr_down_mw, color=GREY, lw=0.9, ls="--",
-         label="mFRR requested, up − down")
-top.axhline(0, color=GREY, lw=0.6)
-top.set_ylabel("MW (+ up-regulation)")
-top.legend(loc="upper left", frameon=False, ncol=3)
-top.set_title("DK1 balancing, 20–26 Oct 2026", loc="left")
+        """from textwrap import fill
 
-on_err = df.wind_onshore_mw - df.wind_onshore_fc_da_mw
-off_err = df.wind_offshore_mw - df.wind_offshore_fc_da_mw
-bottom.plot(df.index, on_err, color=BLUE, lw=0.9, label="onshore − day-ahead forecast")
-bottom.plot(df.index, off_err - off_err.mean(), color=GREY, lw=0.9,
-            label=f"offshore − day-ahead forecast, less its mean ({off_err.mean():+.0f} MW)")
+import matplotlib.dates as mdates
+
+# House style: the title states the finding, the subtitle the units, one muted
+# footer names the source. Series are named in the panel, not in a legend box.
+TEXT, MUTED = "#0B1F3A", "#5B6878"
+plt.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Inter", "Helvetica Neue", "Helvetica", "DejaVu Sans"],
+    "axes.edgecolor": BAND, "axes.labelcolor": MUTED, "axes.grid.axis": "y",
+    "grid.linewidth": 0.6, "xtick.color": MUTED, "ytick.color": MUTED,
+    "text.color": TEXT, "font.size": 10,
+})
+
+q = df.resample("15min").mean()  # the target is settled per quarter-hour
+target = q.satisfied_demand
+n = int(target.notna().sum())
+up, down = int((target > 0).sum()), int((target < 0).sum())
+afrr = q.afrr_up_mw + q.afrr_down_mw
+on_err = q.wind_onshore_mw - q.wind_onshore_fc_da_mw
+off_err = q.wind_offshore_mw - q.wind_offshore_fc_da_mw
+off_adj = off_err - off_err.mean()
+
+fig, (top, bottom) = plt.subplots(2, 1, figsize=(11, 7.2), sharex=True,
+                                  gridspec_kw={"height_ratios": [3, 2], "hspace": 0.3})
+fig.subplots_adjust(left=0.07, right=0.98, top=0.8, bottom=0.1)
+fig.text(0.01, 0.975, f"DK1 needed up-regulation in {up / n:.0%} of quarter-hours, down-regulation "
+         f"in {down / n:.0%} and neither in {1 - (up + down) / n:.0%}, 20–26 Oct 2026",
+         ha="left", va="top", fontsize=14, fontweight="bold", color=TEXT)
+fig.text(0.01, 0.93, fill(
+    "Top: the forecast target, balancing energy activated to cover the system imbalance, "
+    "MW per quarter-hour. Positive means the system was short and generation was turned "
+    "up. Bottom: wind production minus Energinet's day-ahead forecast, MW. Offshore is "
+    f"shown less its weekly mean ({off_err.mean():+.0f} MW), because the live feed and the "
+    "forecast define it differently.", 150), ha="left", va="top", fontsize=10, color=MUTED,
+    linespacing=1.4)
+
+top.plot(target.index, target, color=NAVY, lw=1.1)
+top.plot(afrr.index, afrr, color=BLUE, lw=0.9)
+top.axhline(0, color=GREY, lw=0.6)
+top.set_ylabel("MW")
+top.text(0, 1.03, "Balancing energy activated (the target)", transform=top.transAxes,
+         color=NAVY, fontsize=10, fontweight="bold")
+top.text(0.5, 1.03, "Automatic reserve (aFRR), up plus down", transform=top.transAxes,
+         color=BLUE, fontsize=10, fontweight="bold")
+
+bottom.plot(on_err.index, on_err, color=BLUE, lw=1.0)
+bottom.plot(off_adj.index, off_adj, color=GREY, lw=1.0)
 bottom.axhline(0, color=GREY, lw=0.6)
 bottom.set_ylabel("MW")
-bottom.legend(loc="upper left", frameon=False, ncol=2)
-fig.text(0.01, 0.005, "Data: Energinet, Energi Data Service. Copenhagen time.", fontsize=8, color=GREY)
-fig.tight_layout()
-fig.savefig("01_look.png", dpi=150, bbox_inches="tight")"""
+bottom.text(0, 1.05, "Onshore wind, actual minus day-ahead forecast", transform=bottom.transAxes,
+            color=BLUE, fontsize=10, fontweight="bold")
+bottom.text(0.5, 1.05, "Offshore wind, the same, less its mean", transform=bottom.transAxes,
+            color=GREY, fontsize=10, fontweight="bold")
+
+loc = mdates.DayLocator(tz=CPH)
+bottom.xaxis.set_major_locator(loc)
+bottom.xaxis.set_major_formatter(mdates.DateFormatter("%-d %b", tz=CPH))
+for ax in (top, bottom):
+    ax.set_xlim(START, END)
+    ax.tick_params(length=0)
+fig.text(0.01, 0.012, "Source: Energinet, Energi Data Service (ImbalancePrice, PowerSystemRightNow, "
+         f"Forecasts_5Min) · CC BY 4.0 · Copenhagen time · As of {datetime.now(CPH):%Y-%m-%d}",
+         fontsize=8.5, color=MUTED)
+fig.savefig("01_look.png", dpi=150)"""
     ),
     md(
         "Lower wind than forecast should need up-regulation: the correlation over "
