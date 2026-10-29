@@ -46,3 +46,6 @@ data/live_state.json
 # Training rows and fitted models, rebuilt by the jobs.
 data/training/
 data/models/
+
+# Calls and results the layers read, rebuilt by jobs/layer_calls.py.
+data/layers/
