@@ -72,8 +72,14 @@ class StrategyInputs:
         """Missing conditioners become all-NaN, which `apply_guardrails` leaves alone --
         an absent decile must never silently flatten a real position."""
         index = self.unadj.index
-        util = self.util_decile if self.util_decile is not None else pd.Series(np.nan, index=index)
-        cot = self.cot_pct if self.cot_pct is not None else pd.Series(np.nan, index=index)
+        util = (
+            self.util_decile
+            if self.util_decile is not None
+            else pd.Series(np.nan, index=index)
+        )
+        cot = (
+            self.cot_pct if self.cot_pct is not None else pd.Series(np.nan, index=index)
+        )
         return util.reindex(index), cot.reindex(index)
 
 
@@ -104,7 +110,9 @@ def _carry_react(data: StrategyInputs) -> pd.Series:
 
 
 def _mom_100(data: StrategyInputs) -> pd.Series:
-    return position(zscore(momentum_ma(data.f01_adj, n=100), window=252), sizing="reaction")
+    return position(
+        zscore(momentum_ma(data.f01_adj, n=100), window=252), sizing="reaction"
+    )
 
 
 def _dynamic_carry(data: StrategyInputs) -> pd.Series:
@@ -161,7 +169,9 @@ def _fwd_spread_mr(data: StrategyInputs) -> pd.Series:
     """
     s12 = data.unadj["f01"] - data.unadj["f02"]
     legs = [
-        zscore(s12 - (data.unadj[f"f{k:02d}"] - data.unadj[f"f{k + 1:02d}"]), window=252)
+        zscore(
+            s12 - (data.unadj[f"f{k:02d}"] - data.unadj[f"f{k + 1:02d}"]), window=252
+        )
         for k in (3, 6)
     ]
     averaged = pd.concat(legs, axis=1).mean(axis=1)
@@ -192,7 +202,11 @@ REGISTRY: dict[str, Strategy] = {
         Benchmark(0.203, 0.53, _BOUCHOUEV),
     ),
     "CARRY_REACT": Strategy(
-        "CARRY_REACT", (1, 3), "outright", _carry_react, "C(1,3), not the paper's C(1,13)."
+        "CARRY_REACT",
+        (1, 3),
+        "outright",
+        _carry_react,
+        "C(1,3), not the paper's C(1,13).",
     ),
     "MOM_100": Strategy("MOM_100", (1,), "outright", _mom_100),
     "CARRY_MOM": Strategy(
@@ -248,7 +262,9 @@ def build_positions(name: str, data: StrategyInputs) -> pd.Series:
     """Positions for one strategy. Raises rather than returning an empty series when a
     required rank is absent -- a silent flat series would read as a real decision."""
     if name not in REGISTRY:
-        raise KeyError(f"unknown strategy {name!r} -- expected one of {sorted(REGISTRY)}")
+        raise KeyError(
+            f"unknown strategy {name!r} -- expected one of {sorted(REGISTRY)}"
+        )
     strategy = REGISTRY[name]
     absent = missing_ranks(strategy, data.unadj)
     if absent:

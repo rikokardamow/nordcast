@@ -54,7 +54,9 @@ def reaction(z: pd.Series) -> pd.Series:
     return out
 
 
-def reaction_piecewise(z: pd.Series, plateau: float = 1.0, cutoff: float = 2.5) -> pd.Series:
+def reaction_piecewise(
+    z: pd.Series, plateau: float = 1.0, cutoff: float = 2.5
+) -> pd.Series:
     """Linear ramp to `plateau`, flat until `cutoff`, then flat zero beyond it.
 
     The blunt cousin of `reaction`: same "extreme means stand aside" intent, but the
@@ -153,7 +155,9 @@ def value(f01_adj: pd.Series, n: int = 1260) -> pd.Series:
 
 def convexity_signal(unadj: pd.DataFrame) -> pd.Series:
     """`sign(cv123)` from `core.curve.convexity` -- imported, not recomputed."""
-    return pd.Series(np.sign(convexity(unadj)), index=unadj.index, name="convexity_signal")
+    return pd.Series(
+        np.sign(convexity(unadj)), index=unadj.index, name="convexity_signal"
+    )
 
 
 # --- normalisation and sizing -----------------------------------------------------
@@ -190,7 +194,9 @@ def blend(signals: dict[str, pd.Series], weights: dict[str, float]) -> pd.Series
     supplied is an error, not a silently dropped term."""
     missing = set(weights) - set(signals)
     if missing:
-        raise KeyError(f"weights name signals that were not supplied: {sorted(missing)}")
+        raise KeyError(
+            f"weights name signals that were not supplied: {sorted(missing)}"
+        )
 
     frame = pd.DataFrame({name: signals[name] for name in weights})
     return frame.mul(pd.Series(weights), axis=1).sum(axis=1, min_count=1)

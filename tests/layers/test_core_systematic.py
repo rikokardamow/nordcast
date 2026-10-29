@@ -5,6 +5,7 @@ import warnings
 import numpy as np
 import pandas as pd
 import pytest
+
 from nordcast.layers.systematic import (
     apply_guardrails,
     blend,
@@ -30,9 +31,7 @@ def _index(n: int) -> pd.DatetimeIndex:
 def _backwardated(n: int = 300) -> pd.DataFrame:
     """Front above deferred at every rank -- an unambiguously backwardated curve."""
     idx = _index(n)
-    return pd.DataFrame(
-        {"f01": 80.0, "f02": 79.0, "f03": 78.5, "f04": 78.2}, index=idx
-    )
+    return pd.DataFrame({"f01": 80.0, "f02": 79.0, "f03": 78.5, "f04": 78.2}, index=idx)
 
 
 def _contango(n: int = 300) -> pd.DataFrame:
@@ -54,7 +53,9 @@ def test_reaction_is_zero_at_zero() -> None:
 
 def test_reaction_at_two_matches_the_specs_published_value() -> None:
     """R(2) = 2 * e^-1.5 ~= 0.4463 -- the spec's own stated constant."""
-    assert reaction(pd.Series([2.0])).iloc[0] == pytest.approx(2 * np.exp(-1.5), abs=1e-9)
+    assert reaction(pd.Series([2.0])).iloc[0] == pytest.approx(
+        2 * np.exp(-1.5), abs=1e-9
+    )
     assert reaction(pd.Series([2.0])).iloc[0] == pytest.approx(0.446, abs=0.001)
 
 
@@ -76,7 +77,9 @@ def test_reaction_is_odd_symmetric() -> None:
 def test_reaction_clips_its_input_to_plus_minus_three() -> None:
     """Beyond |z|=3 the function would keep shrinking towards zero; the spec clips the
     input so an extreme reading holds the tail value rather than vanishing."""
-    assert reaction(pd.Series([5.0])).iloc[0] == pytest.approx(reaction(pd.Series([3.0])).iloc[0])
+    assert reaction(pd.Series([5.0])).iloc[0] == pytest.approx(
+        reaction(pd.Series([3.0])).iloc[0]
+    )
     assert reaction(pd.Series([-5.0])).iloc[0] == pytest.approx(
         reaction(pd.Series([-3.0])).iloc[0]
     )
@@ -148,7 +151,9 @@ def test_value_is_contrarian_to_the_long_run_mean() -> None:
     own long-run average, which is the opposite sign to momentum."""
     prices = pd.Series(np.linspace(150, 50, 1400), index=_index(1400))
     out = value(prices, n=1260).dropna()
-    assert (out > 0).all()  # falling series ends below its mean -> positive value signal
+    assert (
+        out > 0
+    ).all()  # falling series ends below its mean -> positive value signal
 
 
 def test_convexity_signal_is_the_sign_of_cv123() -> None:
@@ -282,7 +287,9 @@ def test_guardrails_leave_positions_alone_when_conditioners_are_missing() -> Non
     """A NaN utilisation decile or COT percentile must not silently flatten a position."""
     pos = pd.Series([1.0, -1.0], index=_index(2))
     nan = pd.Series([np.nan, np.nan], index=_index(2))
-    pd.testing.assert_series_equal(apply_guardrails(pos, nan, nan), pos, check_names=False)
+    pd.testing.assert_series_equal(
+        apply_guardrails(pos, nan, nan), pos, check_names=False
+    )
 
 
 # --- negative prices are real (2020-04-20) ----------------------------------------

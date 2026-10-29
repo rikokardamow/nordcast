@@ -3,10 +3,13 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+
 from nordcast.layers.curve import roll_window_offset_grid
 
 
-def test_roll_window_offset_grid_zero_offset_matches_the_real_gsci_window_start() -> None:
+def test_roll_window_offset_grid_zero_offset_matches_the_real_gsci_window_start() -> (
+    None
+):
     """Jan 2026's GSCI window starts 2026-01-07 (Session C's own hand-verified date).
     A synthetic delta series with a distinct, known value exactly on that date must land
     in the offset=0 column, that year's row."""

@@ -35,9 +35,13 @@ class ReleaseSchedule:
 
 RELEASES: dict[str, ReleaseSchedule] = {
     "wpsr": ReleaseSchedule(kind="weekly", tz=_ET, weekday=2, hour=10, minute=30),
-    "eia_gas_storage": ReleaseSchedule(kind="weekly", tz=_ET, weekday=3, hour=10, minute=30),
+    "eia_gas_storage": ReleaseSchedule(
+        kind="weekly", tz=_ET, weekday=3, hour=10, minute=30
+    ),
     "agsi": ReleaseSchedule(kind="daily", tz=_CET, hour=19, minute=30),
-    "baker_hughes": ReleaseSchedule(kind="weekly", tz=_CT, weekday=4, hour=12, minute=0),
+    "baker_hughes": ReleaseSchedule(
+        kind="weekly", tz=_CT, weekday=4, hour=12, minute=0
+    ),
     "cftc_cot": ReleaseSchedule(kind="weekly", tz=_ET, weekday=4, hour=15, minute=30),
     "opec_momr": ReleaseSchedule(kind="monthly", tz=_UTC, day_of_month=12, hour=0),
     "jodi": ReleaseSchedule(kind="monthly", tz=_UTC, day_of_month=20, hour=0),

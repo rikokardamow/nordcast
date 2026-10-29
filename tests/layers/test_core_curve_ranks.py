@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+
 from nordcast.layers.curve import (
     back_adjust_from_ranks,
     roll_dates_from_calendar,
@@ -47,7 +48,10 @@ def test_a_window_containing_no_roll_date_flags_nothing() -> None:
     """Late November sits after the CL roll, so a short window there has none."""
     index = pd.bdate_range("2026-11-24", "2026-11-30")
     panel = pd.DataFrame(
-        {"f01": np.linspace(100, 105, len(index)), "f02": np.linspace(102, 107, len(index))},
+        {
+            "f01": np.linspace(100, 105, len(index)),
+            "f02": np.linspace(102, 107, len(index)),
+        },
         index=index,
     )
     assert not roll_flags_from_ranks(panel, "cl").any()

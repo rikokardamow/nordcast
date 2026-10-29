@@ -22,8 +22,18 @@ from nordcast.layers.calendars import roll_calendar
 # CME/ICE's own fixed, standardised delivery-month letter codes -- a contract code like
 # "z26" IS the December 2026 contract by construction, not something to look up or guess.
 CME_MONTH_CODES: dict[str, int] = {
-    "F": 1, "G": 2, "H": 3, "J": 4, "K": 5, "M": 6,
-    "N": 7, "Q": 8, "U": 9, "V": 10, "X": 11, "Z": 12,
+    "F": 1,
+    "G": 2,
+    "H": 3,
+    "J": 4,
+    "K": 5,
+    "M": 6,
+    "N": 7,
+    "Q": 8,
+    "U": 9,
+    "V": 10,
+    "X": 11,
+    "Z": 12,
 }
 
 # Regime state -> small int, for the lake (`derived.curve.<root>.regime`). A fixed, static
@@ -81,7 +91,9 @@ def nearby_panel(
     contract code occupying f01 that day (None where fewer contracts remain than ranks
     needed)."""
     if adjust != "ratio":
-        raise NotImplementedError(f"adjust={adjust!r} not implemented -- only 'ratio' exists")
+        raise NotImplementedError(
+            f"adjust={adjust!r} not implemented -- only 'ratio' exists"
+        )
 
     contracts_sorted = expiries.sort_values().index.tolist()
     n = len(contracts_sorted)
@@ -231,7 +243,9 @@ def curve_regime(
     cv = convexity(unadj)  # default k=(1,2,3) -- the triple this regime classifier uses
     s1_12 = time_spreads(unadj)["s1_12"]
 
-    slope_pct = s12.rolling(lookback).apply(lambda w: (w <= w.iloc[-1]).mean(), raw=False)
+    slope_pct = s12.rolling(lookback).apply(
+        lambda w: (w <= w.iloc[-1]).mean(), raw=False
+    )
 
     conditions = [
         (s12 < -1.5 * storage_cost_m1m2) & (s1_12 < 0),
@@ -317,12 +331,20 @@ def roll_pressure_seasonal(s12: pd.Series, flag: pd.Series) -> pd.DataFrame:
         mean_in, t_in = _ttest_1samp_vs_zero(delta[year_mask & flag])
         mean_out, t_out = _ttest_1samp_vs_zero(delta[year_mask & ~flag])
         rows.append(
-            {"year": year, "mean_in": mean_in, "t_in": t_in, "mean_out": mean_out, "t_out": t_out}
+            {
+                "year": year,
+                "mean_in": mean_in,
+                "t_in": t_in,
+                "mean_out": mean_out,
+                "t_out": t_out,
+            }
         )
     return pd.DataFrame(rows)
 
 
-def cushing_utilisation(stocks_kbbl: pd.Series, working_cap_kbbl: pd.Series) -> pd.Series:
+def cushing_utilisation(
+    stocks_kbbl: pd.Series, working_cap_kbbl: pd.Series
+) -> pd.Series:
     """stocks_kbbl / working_cap_kbbl, elementwise -- `working_cap_kbbl` (sparse,
     semi-annual per this project's real eia.cushing_working_capacity series) is
     forward-filled onto `stocks_kbbl`'s own (weekly) index first, per the spec's own
@@ -372,7 +394,9 @@ def physical_bands(diff: pd.Series, window: int = 1260) -> pd.DataFrame:
     return rolling_quantile_bands(diff, window=window, min_periods=1)
 
 
-def roll_window_offset_grid(delta: pd.Series, index: str, window: int = 5) -> pd.DataFrame:
+def roll_window_offset_grid(
+    delta: pd.Series, index: str, window: int = 5
+) -> pd.DataFrame:
     """Mean `delta` value (e.g. day-over-day Δs12) by (year, business-day offset from
     `index`'s own roll-window start), offsets `-window..window` -- feeds
     core.theme.bday_heatmap. Window-start dates come from core.calendars.roll_calendar
@@ -401,9 +425,13 @@ def roll_window_offset_grid(delta: pd.Series, index: str, window: int = 5) -> pd
         sign = 1 if d >= best else -1
         offsets[i] = sign * np.busday_count(min(best, d), max(best, d))
 
-    grid_df = pd.DataFrame({"year": dates.year, "offset": offsets, "value": delta.to_numpy()})
+    grid_df = pd.DataFrame(
+        {"year": dates.year, "offset": offsets, "value": delta.to_numpy()}
+    )
     grid_df = grid_df[grid_df["offset"].abs() <= window]
-    grid = grid_df.pivot_table(index="year", columns="offset", values="value", aggfunc="mean")
+    grid = grid_df.pivot_table(
+        index="year", columns="offset", values="value", aggfunc="mean"
+    )
     return grid.reindex(columns=range(-window, window + 1))
 
 
@@ -452,7 +480,9 @@ def nymex_expiry(root: str, year: int, month: int) -> date:
     prior_year, prior_month = (year, month - 1) if month > 1 else (year - 1, 12)
 
     if root in _LAST_BUSINESS_DAY_ROOTS:
-        last = pd.Timestamp(year=prior_year, month=prior_month, day=1) + pd.offsets.MonthEnd(1)
+        last = pd.Timestamp(
+            year=prior_year, month=prior_month, day=1
+        ) + pd.offsets.MonthEnd(1)
         stamp = np.busday_offset(last.date(), 0, roll="backward")
         return pd.Timestamp(stamp).date()
 

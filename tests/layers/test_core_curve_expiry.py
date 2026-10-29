@@ -4,6 +4,7 @@ from datetime import date
 
 import pandas as pd
 import pytest
+
 from nordcast.layers.curve import nymex_expiry, roll_dates_from_calendar
 
 # --- CL: 3 business days before the 25th of the preceding month -------------------

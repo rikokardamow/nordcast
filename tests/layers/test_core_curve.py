@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+
 from nordcast.layers.curve import (
     convexity,
     curve_regime,
@@ -29,7 +30,9 @@ def test_roll_happens_on_the_exact_business_day_before_expiry() -> None:
     expiries, dates, panel = _three_contract_setup()
     _, _, roll_dates = nearby_panel(panel, expiries, roll_days_before_expiry=5)
 
-    roll_date_f26 = pd.Timestamp(np.busday_offset(expiries["f26"].date(), -5, roll="backward"))
+    roll_date_f26 = pd.Timestamp(
+        np.busday_offset(expiries["f26"].date(), -5, roll="backward")
+    )
     loc = dates.get_loc(roll_date_f26)
 
     assert roll_dates.iloc[loc - 1] == "f26"  # day before the roll: still front
@@ -40,7 +43,9 @@ def test_contract_retires_from_every_rank_once_rolled_past() -> None:
     expiries, dates, panel = _three_contract_setup()
     _, unadj, roll_dates = nearby_panel(panel, expiries, roll_days_before_expiry=5)
 
-    roll_date_f26 = pd.Timestamp(np.busday_offset(expiries["f26"].date(), -5, roll="backward"))
+    roll_date_f26 = pd.Timestamp(
+        np.busday_offset(expiries["f26"].date(), -5, roll="backward")
+    )
     loc = dates.get_loc(roll_date_f26)
     row = unadj.iloc[loc]
 
@@ -64,7 +69,9 @@ def test_zero_return_on_roll_day() -> None:
 
     adjusted, _, _ = nearby_panel(panel, expiries, roll_days_before_expiry=5)
 
-    roll_date = pd.Timestamp(np.busday_offset(expiries["f26"].date(), -5, roll="backward"))
+    roll_date = pd.Timestamp(
+        np.busday_offset(expiries["f26"].date(), -5, roll="backward")
+    )
     loc = dates.get_loc(roll_date)
 
     ret = adjusted["f01"].pct_change().iloc[loc]
@@ -129,9 +136,13 @@ def test_transition_matrix_rows_sum_to_one() -> None:
     assert row_sums.loc["concave_contango"] == pytest.approx(1.0)
 
 
-def test_transition_matrix_all_nan_row_for_a_state_with_no_outgoing_transition() -> None:
+def test_transition_matrix_all_nan_row_for_a_state_with_no_outgoing_transition() -> (
+    None
+):
     # "flat" appears once, at the very end -- no outgoing transition was ever observed.
-    states = pd.Series(["convex_contango", "concave_contango", "convex_contango", "flat"])
+    states = pd.Series(
+        ["convex_contango", "concave_contango", "convex_contango", "flat"]
+    )
     matrix = transition_matrix(states)
     assert matrix.loc["flat"].isna().all()
 

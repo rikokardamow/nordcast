@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+
 from nordcast.layers.curve import (
     cushing_utilisation,
     physical_bands,
@@ -111,7 +112,9 @@ def test_physical_bands_matches_the_shared_helper_at_min_periods_one() -> None:
     )
 
 
-def test_tas_window_flag_flags_exactly_the_last_two_business_days_before_expiry() -> None:
+def test_tas_window_flag_flags_exactly_the_last_two_business_days_before_expiry() -> (
+    None
+):
     expiry = pd.Timestamp("2026-01-20")  # a Tuesday
     day1 = pd.Timestamp(np.busday_offset(expiry.date(), -1, roll="backward"))
     day2 = pd.Timestamp(np.busday_offset(expiry.date(), -2, roll="backward"))

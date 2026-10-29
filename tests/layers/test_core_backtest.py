@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+
 from nordcast.layers.backtest import (
     backtest,
     fractionate,
@@ -105,7 +106,9 @@ def test_sharpe_is_the_return_to_vol_ratio_with_no_risk_free_rate() -> None:
 
 def test_a_steadily_rising_equity_curve_has_no_drawdown() -> None:
     idx = _index(50)
-    result = backtest(pd.Series(1.0, index=idx), pd.Series(0.01, index=idx), cost_bps=0.0)
+    result = backtest(
+        pd.Series(1.0, index=idx), pd.Series(0.01, index=idx), cost_bps=0.0
+    )
     assert result.stats["max_drawdown"] == pytest.approx(0.0)
 
 
@@ -138,9 +141,9 @@ def test_spread_pnl_overrides_the_price_return_when_supplied() -> None:
     returns = pd.Series(0.05, index=idx)
     spread = pd.Series(0.01, index=idx)
     pos = pd.Series(1.0, index=idx)
-    assert backtest(pos, returns, spread_pnl=spread, cost_bps=0.0).pnl.sum() == pytest.approx(
-        spread.iloc[1:].sum()
-    )
+    assert backtest(
+        pos, returns, spread_pnl=spread, cost_bps=0.0
+    ).pnl.sum() == pytest.approx(spread.iloc[1:].sum())
 
 
 # --- fractionation ----------------------------------------------------------------
@@ -160,8 +163,17 @@ def test_fractionation_shares_sum_to_one_per_condition() -> None:
 
 def test_fractionation_reports_the_columns_the_spec_names() -> None:
     pnl = _returns(200)
-    table = fractionate(pnl, {"regime": pd.Series(np.arange(200) % 2, index=pnl.index)}, bins=2)
-    assert list(table.columns) == ["condition", "bin", "n", "mean", "sharpe", "share_of_total"]
+    table = fractionate(
+        pnl, {"regime": pd.Series(np.arange(200) % 2, index=pnl.index)}, bins=2
+    )
+    assert list(table.columns) == [
+        "condition",
+        "bin",
+        "n",
+        "mean",
+        "sharpe",
+        "share_of_total",
+    ]
 
 
 def test_fractionation_counts_every_observation_exactly_once() -> None:

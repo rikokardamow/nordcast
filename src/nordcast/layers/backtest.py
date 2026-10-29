@@ -90,7 +90,9 @@ def backtest(
     }
 
     rolling = pnl.rolling(ROLLING_SHARPE_WINDOW)
-    rolling_sharpe = (rolling.mean() * TRADING_DAYS) / (rolling.std() * np.sqrt(TRADING_DAYS))
+    rolling_sharpe = (rolling.mean() * TRADING_DAYS) / (
+        rolling.std() * np.sqrt(TRADING_DAYS)
+    )
 
     return BacktestResult(
         pnl=pnl,
@@ -174,7 +176,9 @@ def fractionate(
                     "sharpe": float(group.mean() / std * np.sqrt(TRADING_DAYS))
                     if std
                     else float("nan"),
-                    "share_of_total": float(group.sum() / total) if total else float("nan"),
+                    "share_of_total": float(group.sum() / total)
+                    if total
+                    else float("nan"),
                 }
             )
 
@@ -198,7 +202,9 @@ def _ols(y: np.ndarray, x: np.ndarray) -> tuple[float, float]:
     return r2, t_stat
 
 
-def inventory_predictability_test(s12: pd.Series, inventory: pd.Series) -> dict[str, float | bool]:
+def inventory_predictability_test(
+    s12: pd.Series, inventory: pd.Series
+) -> dict[str, float | bool]:
     """Which leads which: calendar spreads or inventories?
 
     Regresses the change in inventory on the lagged change in the spread, and the change
