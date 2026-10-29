@@ -139,3 +139,35 @@ def test_a_failed_challenger_writes_no_row_and_blocks_nothing(live):
     assert [r["source_kind"] for r in rows].count("challenger") == 0
     assert rows[0]["status"] == "frozen"
     assert missed == ["broken: ZeroDivisionError: boom"]
+
+
+@pytest.mark.parametrize(
+    "probs",
+    [
+        (0.33335, 0.33335, 0.3333),  # each rounds up: the three sum to 1.0001
+        (0.49995, 0.50005, 0.0),  # p_up + p_down round to 1.0001: p_none must stay >= 0
+        (0.123456, 0.654321, 0.222223),
+    ],
+)
+def test_probabilities_always_sum_to_one_after_rounding(probs):
+    up, down, none = probs
+    p = freeze._probabilities({"p_up": up, "p_down": down, "p_none": none})
+    vals = [float(p[k]) for k in ("p_up", "p_down", "p_none")]
+    assert abs(sum(vals) - 1) < 1e-9 and min(vals) >= 0
+
+
+def test_a_challenger_row_the_database_refuses_never_blocks_the_headline(live):
+    db, release = live
+
+    def empty(history, target, now, horizon):  # no volume, no direction: refused
+        return {"model_version": "empty"}
+
+    missed = []
+    rows = freeze.freeze_rows(
+        db, release, 15, NOW, challengers=[("empty", empty)], missed=missed
+    )
+    assert rows[0]["method"] == "model"
+    assert [r["source_kind"] for r in rows].count("challenger") == 0
+    n = db.execute("select count(*) from forecast where method = 'model'").fetchone()[0]
+    assert n == 1
+    assert missed and missed[0].startswith("empty: CheckViolation")

@@ -61,6 +61,17 @@ def _p(x):
     return None if x is None else f"{float(x):.4f}"
 
 
+def _probabilities(call):
+    """p_up and p_down at 4 decimals, p_none the remainder, so the three add up
+    to exactly 1; rounding each on its own can miss by more than the
+    database's 0.0001 and refuse the row (20:00/h30, 29 Oct 2026)."""
+    if call.get("p_up") is None:
+        return {"p_up": None, "p_down": None, "p_none": None}
+    up = round(float(call["p_up"]), 4)
+    down = min(round(float(call["p_down"]), 4), round(1 - up, 4))  # never p_none < 0
+    return {"p_up": _p(up), "p_down": _p(down), "p_none": _p(1 - up - down)}
+
+
 def make_row(release, target, horizon, cutoff, source_kind, method, status, call):
     payload = {
         "release": f"{release['kind']} {release['scheduled_at'].isoformat()}",
@@ -75,9 +86,7 @@ def make_row(release, target, horizon, cutoff, source_kind, method, status, call
         "q50": _mw(call.get("q50")),
         "q90": _mw(call.get("q90")),
         "direction": call.get("direction"),
-        "p_up": _p(call.get("p_up")),
-        "p_down": _p(call.get("p_down")),
-        "p_none": _p(call.get("p_none")),
+        **_probabilities(call),
         "data_cutoff": cutoff.isoformat(),
         "model_version": call.get("model_version"),
         "flag_reason": call.get("flag_reason"),
@@ -155,7 +164,20 @@ def freeze_rows(conn, release, horizon, now, model=v0_model, challengers=(),
             _history(conn), target, now, model, horizon, challengers, missed
         )
     ]
+    written = []
     with conn.transaction():
         for r in rows:
-            insert(conn, release_id, r)
-    return rows
+            if r["source_kind"] != "challenger":
+                insert(conn, release_id, r)
+                written.append(r)
+                continue
+            try:
+                with (
+                    conn.transaction()
+                ):  # a savepoint: a challenger never blocks the rest
+                    insert(conn, release_id, r)
+                written.append(r)
+            except Exception as exc:  # noqa: BLE001
+                if missed is not None:
+                    missed.append(f"{r['method']}: {type(exc).__name__}: {exc}"[:200])
+    return written
