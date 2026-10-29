@@ -1,11 +1,11 @@
 # pre-registration – DK1 imbalance calls
 
-**status: draft, 29 oct 2026. becomes binding when committed with "Pre-register" in the message, before the challenger's first scored day. after that it changes only by a dated amendment below, never by an edit.**
+**status: pre-registered 29 oct 2026. binding from this commit; it changes only by a dated amendment below, never by an edit.**
 
-**open, mine to decide before committing:**
-1. **the bar.** the plan: lightgbm takes the call by beating persistence. notes/replay.md: the live model starts from the replay's winner, ar(1), which was ~20 % better than persistence on every horizon in round 4. this draft asks for both (the "second condition" below). alternatives: persistence only (plan as written), or ar(1) as the bar and the headline from now.
-2. **the window.** this draft: the challenger's first 60 full days (nordcast-plan.md, 28 oct). the earlier PROMPT said 30. with the record started by early december, 60 days closes in february, still before the 1 apr 2027 boundary; 30 doesn't move the earliest promotion.
-3. the window can only open once the jobs run on a clock (notes/incidents.md, 29 oct).
+decided 29 oct 2026:
+1. **the bar:** the challenger must beat persistence (the plan's rule) and be no worse than ar(1), the replay's winner (notes/replay.md), which was ~20 % better than persistence on every horizon in round 4. both conditions are below.
+2. **the window:** the challenger's first 60 full days (nordcast-plan.md, 28 oct), not the earlier prompt's 30. 30 wouldn't move the earliest promotion (1 apr 2027).
+3. the window opens only once the jobs run on a clock (notes/incidents.md, 29 oct); until then the record isn't running and nothing here is being scored.
 
 ## the call
 
@@ -31,7 +31,7 @@
 - **losses:** volume, mean pinball over q10/q50/q90; direction, the multiclass Brier score. both as in `nordcast.score.losses`.
 - **misses:** a challenger call that wasn't frozen is filled with the persistence call for that ISP, so a miss can never help it. an ISP the headline missed is dropped for both (the comparison needs the bar).
 - **statistic:** per ISP, d = loss(persistence) − loss(challenger); averaged per day; a day-block bootstrap (resample days with replacement, 10,000 draws, seed 20261029) of the mean daily d. **pass** when the 90 % interval (5th–95th percentile) is above zero, for pinball and for Brier, each on its own.
-- **second condition:** on the same window and bootstrap, the challenger's pinball is not worse than `persistence_ar1`'s (the 90 % interval of loss(ar1) − loss(challenger) doesn't sit wholly below zero). beating persistence alone is easy; the replay showed ar(1) ~20 % better.
+- **second condition (decided 29 oct):** on the same window and bootstrap, the challenger's pinball is not worse than `persistence_ar1`'s (the 90 % interval of loss(ar1) − loss(challenger) doesn't sit wholly below zero). beating persistence alone is easy; the replay showed ar(1) ~20 % better.
 
 ## after the test
 
