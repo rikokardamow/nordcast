@@ -25,6 +25,7 @@ day-ahead prices (not archived) can't be checked here.
 
 from collections import defaultdict
 from datetime import timedelta
+from itertools import pairwise
 from pathlib import Path
 
 import pandas as pd
@@ -70,7 +71,7 @@ def watched(pulls):
         inside = [p for p in pulls if start - MAX_GAP <= p <= end + MAX_GAP]
         if not inside or inside[0] > start or inside[-1] < end:
             return False
-        return all(b - a <= MAX_GAP for a, b in zip(inside, inside[1:]))
+        return all(b - a <= MAX_GAP for a, b in pairwise(inside))
 
     return ok
 
@@ -109,7 +110,7 @@ def main():
                 continue
             d["after_end_min"] = (d["first"] - (d.isp + ISP)).dt.total_seconds() / 60
             d["nominal_after_end_min"] = d.isp.map(
-                lambda t: (spec.lag(t) - (t + ISP)).total_seconds() / 60
+                lambda t, lag=spec.lag: (lag(t) - (t + ISP)).total_seconds() / 60
             )
             late = d["first"] > d.isp.map(spec.lag)
             lines.append({
