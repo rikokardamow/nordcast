@@ -28,6 +28,12 @@ changes:        28 oct 2026 first version.
                 28 oct 2026 tried: fit on the post-4-mar-2026 window only (same validation slice). worse at
                 every horizon (brier 0.682 vs 0.662 at 15 min; 0.693 at 60, no better than constant
                 shares) and it still calls none on 0-0.3 % of isps. kept the pooled window.
+                29 oct 2026 tried two decision rules on the holdout models, each tuned on the
+                calibrate slice and judged on the last 20 %: (a) none when p_none >= tau: the
+                chosen tau (0.33-0.36) calls none on ~0 % of isps, accuracy unchanged; (b) none
+                when the volume call's |q50| < k MW (energinet ignores mfrr needs under 25 mw):
+                the chosen k is 0, i.e. calling none never pays. none is not predictable 15-60
+                min ahead with v1's inputs; direction stays ~42-45 %. no rule change.
 ```
 
 ## result on the last 20 % (10 aug – 27 oct 2026, 7,522 isps), notebooks/03_model.ipynb
@@ -40,4 +46,4 @@ optimistic, as for volume. pnl: 10 mw open in the called direction, settled at t
 | 30 | 0.427 / 0.422 / 0.420 | 0.671 / 1.155 / 0.691 | 25,187 / 202,746 |
 | 60 | 0.424 / 0.406 / 0.420 | 0.681 / 1.188 / 0.691 | −13,305 / 142,300 |
 
-a perfect direction call would have made 1,081,220 eur on the same window, so the money is in the up isps (mean spread +97 eur/mwh) and persistence catches more of them by holding the last direction through runs. the post-4-mar-2026 fit was tried and was worse (changes, above). none is 28 % of the last 20 % against 42 % down, so it is rarely the most probable class even when its probability is right: the argmax rarely picks it by construction. next to try: a threshold on p_none, or recency weights, instead of cutting the window.
+a perfect direction call would have made 1,081,220 eur on the same window, so the money is in the up isps (mean spread +97 eur/mwh) and persistence catches more of them by holding the last direction through runs. the post-4-mar-2026 fit was tried and was worse (changes, above). none is 28 % of the last 20 % against 42 % down, so it is rarely the most probable class even when its probability is right: the argmax rarely picks it by construction. a threshold on p_none and a small-volume rule were tried and don't help (changes, above); recency weights are the one idea left untested.
