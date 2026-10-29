@@ -137,6 +137,50 @@ SERIES = {
         _after_end(5),
         resolution_min=5,
     ),
+    # Layer #33: physical flow per border, + = import (each tested against
+    # settlement; docs/layers/interconnectors).
+    "energinet.dk1.flow_de_mw": Series(
+        "ElectricityProdex5MinRealtime",
+        "Minutes5UTC",
+        ("ExchangeGermany",),
+        _after_end(5),
+        resolution_min=5,
+    ),
+    "energinet.dk1.flow_nl_mw": Series(
+        "ElectricityProdex5MinRealtime",
+        "Minutes5UTC",
+        ("ExchangeNetherlands",),
+        _after_end(5),
+        resolution_min=5,
+    ),
+    "energinet.dk1.flow_gb_mw": Series(
+        "ElectricityProdex5MinRealtime",
+        "Minutes5UTC",
+        ("ExchangeGreatBritain",),
+        _after_end(5),
+        resolution_min=5,
+    ),
+    "energinet.dk1.flow_no_mw": Series(
+        "ElectricityProdex5MinRealtime",
+        "Minutes5UTC",
+        ("ExchangeNorway",),
+        _after_end(5),
+        resolution_min=5,
+    ),
+    "energinet.dk1.flow_se_mw": Series(
+        "ElectricityProdex5MinRealtime",
+        "Minutes5UTC",
+        ("ExchangeSweden",),
+        _after_end(5),
+        resolution_min=5,
+    ),
+    "energinet.dk1.flow_dk2_mw": Series(
+        "ElectricityProdex5MinRealtime",
+        "Minutes5UTC",
+        ("ExchangeGreatBelt",),
+        _after_end(5),
+        resolution_min=5,
+    ),
     # "updated close to 18:00 local Danish time" for the following day
     "energinet.dk1.wind_onshore_fc_da_mw": Series(
         "Forecasts_5Min",
