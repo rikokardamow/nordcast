@@ -45,3 +45,34 @@ def test_a_5min_isp_appears_only_once_complete():
         if o["series_id"].endswith("solar_mw")
     ]
     assert [(o["value"], o["published_at"]) for o in obs] == [(30.0, P2)]
+
+
+def test_load_skips_mfrr_request_pulls_already_loaded(db, tmp_path, monkeypatch):
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    def write(rows):
+        (tmp_path / "mfrr_request").mkdir(exist_ok=True)
+        pq.write_table(
+            pa.Table.from_pylist(rows), tmp_path / "mfrr_request" / "2026-10-28.parquet"
+        )
+
+    def issue(minute, value, pulled):
+        return {"timeStamp": f"2026-10-28T12:{minute:02d}:01+00:00", "mtuStart": "2026-10-28T12:15:00+00:00",
+                "area": "DK1", "value": value, "pulled_at_utc": pulled}  # fmt: skip
+
+    now = P2 + timedelta(minutes=5)
+    state = tmp_path / "state.json"
+    write([issue(8, -86, P1)])
+    assert live.load(db, tmp_path, now, state)["mfrr_request"] == 1
+    write([issue(8, -86, P1), issue(9, -90, P2)])
+    # only the second pull is read; the first isn't offered to the database again
+    calls = []
+    real = live.store.insert_observations
+    monkeypatch.setattr(
+        live.store,
+        "insert_observations",
+        lambda c, obs: calls.append(len(obs)) or real(c, obs),
+    )
+    assert live.load(db, tmp_path, now, state)["mfrr_request"] == 1
+    assert calls[-1] == 1

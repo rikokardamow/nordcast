@@ -97,11 +97,17 @@ def load(conn, archive, now, state_path):
         )
         added[folder] = store.insert_observations(conn, replay(dataset, rows, since))
         state[folder] = max(r["pulled_at_utc"] for r in rows).isoformat()
+    # each row carries its own issue time, so only the watermark is needed here
     rows = _partitions(archive, "mfrr_request", now)
     if rows:
+        since = state.get("mfrr_request")
+        new = [
+            r for r in rows if since is None or r["pulled_at_utc"].isoformat() > since
+        ]
         added["mfrr_request"] = store.insert_observations(
-            conn, energinet_rt.to_observations(rows)
+            conn, energinet_rt.to_observations(new)
         )
+        state["mfrr_request"] = max(r["pulled_at_utc"] for r in rows).isoformat()
     conn.commit()
     state_path.parent.mkdir(parents=True, exist_ok=True)
     state_path.write_text(json.dumps(state, indent=2) + "\n")
