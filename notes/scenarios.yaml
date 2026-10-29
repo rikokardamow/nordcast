@@ -19,3 +19,9 @@ feed_outage_under_rules:
   description: a stale feed caps the position at 2.5 MW; after 2 h persistence can't build a call, so no position
   cap_mw: 2.5
   hold_hours: 2
+feed_outage_under_rules_from_30_oct:
+  # added 29 Oct 2026 with the limits change (CHANGELOG.md): from 30 Oct a feed
+  # stale by two ISPs means no position, so a capped position lasts one ISP
+  description: the outage under the limits from 30 Oct 2026, 2.5 MW for one ISP, then flat
+  cap_mw: 2.5
+  hold_hours: 0.25

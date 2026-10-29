@@ -50,7 +50,7 @@ def test_no_position_where_the_band_includes_zero():
 
 def test_a_stale_feed_caps_the_position():
     fresh = positions.build_positions("forecast", calls(), 15).dropna()
-    stale = positions.build_positions("forecast", calls(steps_ahead=6), 15).dropna()
+    stale = positions.build_positions("forecast", calls(steps_ahead=5), 15).dropna()
     assert stale.abs().max() <= 0.25 * positions.SIZE_MW + 1e-9
     assert fresh.abs().max() > 0.25 * positions.SIZE_MW
 
@@ -70,3 +70,10 @@ def test_the_control_reads_persistence_columns():
     a = positions.build_positions("forecast", c, 15).rename(None)
     b = positions.build_positions("persistence", c, 15).rename(None)
     pd.testing.assert_series_equal(a, b)
+
+
+def test_a_feed_stale_by_two_isps_or_more_means_no_position():
+    two_behind = positions.build_positions(
+        "forecast", calls(steps_ahead=6), 15
+    ).dropna()
+    assert (two_behind == 0).all()

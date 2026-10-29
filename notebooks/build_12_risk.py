@@ -131,16 +131,21 @@ for name, label in (("persistence", "persistence"), ("forecast", "ar(1)")):
     rows.append({"strategy": label, "scenario": f"feed outage, {SCEN['feed_outage']['hold_hours']} h held",
                  "net_eur": worst[0], "worst_day_eur": None, "days_covered": None,
                  "when": worst[1].tz_convert(CPH).strftime("%d %b %Y %H:%M")})
-    r = SCEN["feed_outage_under_rules"]
-    k2, cap = int(r["hold_hours"] * 4), r["cap_mw"]
-    worst2 = None
-    for start in range(len(held) - k2):
-        p0 = held.iloc[start].clip(-cap, cap)
-        loss = (p0 * earned.iloc[start : start + k2] - abs(p0) * pnl.ISP_HOURS * pnl.SLIPPAGE_EUR_MWH).sum(min_count=1)
-        if pd.notna(loss) and (worst2 is None or loss < worst2[0]):
-            worst2 = (loss, held.index[start])
-    rows.append({"strategy": label, "scenario": f"feed outage under the rules ({cap} MW, {r['hold_hours']} h)",
-                 "net_eur": worst2[0], "when": worst2[1].tz_convert(CPH).strftime("%d %b %Y %H:%M")})
+    for key in ("feed_outage_under_rules", "feed_outage_under_rules_from_30_oct"):
+        r = SCEN[key]
+        k2, cap = max(1, int(r["hold_hours"] * 4)), r["cap_mw"]
+        worst2 = None
+        for start in range(len(held) - k2):
+            p0 = held.iloc[start].clip(-cap, cap)
+            loss = (
+                p0 * earned.iloc[start : start + k2]
+                - abs(p0) * pnl.ISP_HOURS * pnl.SLIPPAGE_EUR_MWH
+            ).sum(min_count=1)
+            if pd.notna(loss) and (worst2 is None or loss < worst2[0]):
+                worst2 = (loss, held.index[start])
+        rows.append({"strategy": label,
+                     "scenario": f"feed outage under the rules ({cap} MW, {r['hold_hours']} h)",
+                     "net_eur": worst2[0], "when": worst2[1].tz_convert(CPH).strftime("%d %b %Y %H:%M")})
     rows.append({"strategy": label, "scenario": "worst day", "net_eur": d.min(),
                  "when": str(d.idxmin())})
 pd.DataFrame(rows).set_index(["strategy", "scenario"]).round(0)"""
@@ -152,9 +157,9 @@ pd.DataFrame(rows).set_index(["strategy", "scenario"]).round(0)"""
         "limit can't see the loss. The strategy's own rules don't allow that hold, though. A stale "
         "feed caps the position at 2.5 MW, and once the latest known ISP is 2 h old persistence "
         "can't build a call, so there is no position; run that way, the worst outage stays just "
-        "inside the limit (the 'under the rules' row, a scenario added after the first run). The "
-        "margin is thin, so flattening rather than capping on a stale feed is the change worth "
-        "considering in notes/limits.md. Historical simulation, expected to fail, passes here: with "
+        "inside the limit (the 2 h 'under the rules' row, a scenario added after the first run). "
+        "The margin was thin, so from 30 Oct 2026 a feed stale by two ISPs means no position "
+        "(notes/limits.md, CHANGELOG.md): an outage then risks one capped ISP (the 0.25 h row). Historical simulation, expected to fail, passes here: with "
         "~245 backtest days the tests have little power, so that is no verdict either way."
     ),
     md(

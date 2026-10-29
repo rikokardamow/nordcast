@@ -46,4 +46,4 @@ coverage of q10–q90 (target 80 %), direction accuracy, MAE, the hold-into-imba
 
 ## amendments
 
-none yet.
+**Amendment 1, 29 oct 2026, before the window opened** (the challenger's first frozen call was 19:26 utc today, so its first full day, and the window, start no earlier than 30 oct). For direction, the brier comparison is also made against `direction_climatology`, the baseline frozen beside every call, on the same window, misses rule, bootstrap and 90 % interval. The challenger passes on direction only if its interval against climatology is above zero, as well as against persistence. Reason: persistence's one-hot probabilities score ~1.0 brier, so any calibrated model beats it by ~0.45 whatever it knows; climatology is the honest bar (docs/experiments/direction-bar: on the replay's 2026 rounds v1 beat it by 0.016–0.028 at 15 min, interval above zero in every round). This makes the test stricter, not easier. Decided by Claude Code on the owner's instruction to take the practical decisions.

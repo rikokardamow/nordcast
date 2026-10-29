@@ -12,8 +12,9 @@ A call becomes a position in [-1, 1], times the stated 10 MW (notes/limits.md):
 - sizing: `reaction` (layers.systematic), peaking at 1 for z = 1 and backing off
   further out.
 - conviction filter: no position where the call's q10-q90 band includes zero.
-- guardrail: capped at GUARDRAIL_CAP when the feed was stale at the freeze (the
-  target's latest known ISP older than usual for the horizon).
+- guardrail (notes/limits.md): the feed is stale when the target's latest known
+  ISP is older than usual for the horizon. One ISP older: capped at
+  GUARDRAIL_CAP. Two or more (~30 min without fresh prints): no position.
 
 Strategies follow layers.strategies' shape: a registry, `required_inputs`, and
 `build_positions` that raises on a missing input rather than return a flat
@@ -71,8 +72,9 @@ def raw_position(point, q10, q90, steps, horizon, window=SD_WINDOW):
     """Position in [-1, 1] before sizing to MW."""
     pos = position(signal(point, window), sizing="reaction")
     pos = pos.where(~((q10 <= 0) & (q90 >= 0)), 0.0)  # conviction filter
-    stale = steps > USUAL_STEPS[horizon]
-    pos = pos.mask(stale, pos.clip(-GUARDRAIL_CAP, GUARDRAIL_CAP))
+    behind = steps - USUAL_STEPS[horizon]
+    pos = pos.mask(behind == 1, pos.clip(-GUARDRAIL_CAP, GUARDRAIL_CAP))
+    pos = pos.mask(behind >= 2, 0.0)  # limits.md, 29 Oct 2026: flatten, don't cap
     return pos.where(point.notna())  # no call, no position: NaN, never 0
 
 
