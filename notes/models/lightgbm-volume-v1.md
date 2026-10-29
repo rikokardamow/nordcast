@@ -25,7 +25,10 @@ assumptions:    - estimated publish times (notes/sources.md) err late, so traini
                 - offshore wind is used only as its own error against its own forecast: the 5-min feed and
                   the forecasts define offshore differently (~900 mw level gap, 27 oct 2026).
                 - 4 mar 2026 break (SatisfiedDemand: demand -> activated) enters as regime_activated, 0/1.
-known limits:   - mfrr_request (energinet's own request, from 7.5 min before the mtu) has no history before
+known limits:   - the band is under-wide on a short window: refit on Oct-Dec 2025 only, it covered 69-73 %
+                  of 2026q1 (target 80 %); with more history 81-84 % in 2026q2-q3
+                  (docs/experiments/v2-layer-features, 29 oct 2026).
+                - mfrr_request (energinet's own request, from 7.5 min before the mtu) has no history before
                   28 oct 2026, so it isn't an input. it should be the strongest one for 15 min.
                 - the chosen settings sit at the small corner of the grid (7 leaves, 150 trees), twice: the
                   grid was moved down once and the corner moved with it. the model is near the edge of
