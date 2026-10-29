@@ -32,9 +32,11 @@ Live, from the scored record. The record started on 28 October 2026 and is far t
 <!-- scorecard -->
 | horizon | method | calls | direction hit | pinball vs persistence (90 % CI) | coverage q10–q90 | on-time | live since |
 |---|---|---|---|---|---|---|---|
-| 15 min | headline | 2 | 0.0 % | +0.0 MW (+0.0 to +0.0) | 50.0 % | 2.1 % | 28 Oct 2026 |
-| 30 min | headline | 2 | 50.0 % | +0.0 MW (+0.0 to +0.0) | 100.0 % | 2.1 % | 28 Oct 2026 |
-| 60 min | headline | 2 | 0.0 % | +0.0 MW (+0.0 to +0.0) | 100.0 % | 2.1 % | 28 Oct 2026 |
+| 15 min | headline | 6 | 0.0 % | +0.0 MW (+0.0 to +0.0) | 83.3 % | 5.9 % | 28 Oct 2026 |
+| 15 min | lightgbm_v1 (challenger) | 3 | 66.7 % | +0.6 MW (+0.0 to +1.1) | 66.7 % | 3.0 % | 29 Oct 2026 |
+| 30 min | headline | 5 | 20.0 % | +0.0 MW (+0.0 to +0.0) | 100.0 % | 4.9 % | 28 Oct 2026 |
+| 30 min | lightgbm_v1 (challenger) | 2 | 0.0 % | -0.7 MW (-1.3 to +0.0) | 50.0 % | 2.0 % | 29 Oct 2026 |
+| 60 min | headline | 3 | 0.0 % | +0.0 MW (+0.0 to +0.0) | 100.0 % | 2.9 % | 28 Oct 2026 |
 <!-- /scorecard -->
 
 How to read it:
