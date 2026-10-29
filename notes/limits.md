@@ -1,6 +1,6 @@
 # limits – written before any position
 
-29 oct 2026, per controls.md §7. **draft: the numbers are proposals until the owner confirms them; a limit changes only by the owner, with a change log line, never intraday.** every position in nordcast is simulated ("would have"); the limits still come first, so the backtests are run under them, not fitted around them.
+29 oct 2026, per controls.md §7. **adopted 29 oct 2026: the owner told claude code to take the practical decisions, and these are the proposals it made, unchanged. a limit changes only by the owner, with a change log line, never intraday.** every position in nordcast is simulated ("would have"); the limits still come first, so the backtests are run under them, not fitted around them.
 
 ## strategy: hold-into-imbalance (L1/L2)
 
@@ -12,7 +12,7 @@
 | stale feed | the target's latest known isp more than one isp older than usual for the horizon | position capped at 0.25 (2.5 mw) for that isp |
 | missing call | no frozen call for the isp and horizon | no position: never a substituted one |
 
-why €5,000: at 10 mw a 15-min isp risks 2.5 mwh, so €5,000 is 2,000 €/mwh of adverse spread in a day: about twenty isps against the call at the ~100 €/mwh spreads that are common in dk1, or two or three at the scarcity spreads of 4 mar – 1 jun 2025. it binds on bad days and not on ordinary ones. confirm or replace.
+why €5,000: at 10 mw a 15-min isp risks 2.5 mwh, so €5,000 is 2,000 €/mwh of adverse spread in a day: about twenty isps against the call at the ~100 €/mwh spreads that are common in dk1, or two or three at the scarcity spreads of 4 mar – 1 jun 2025. it binds on bad days and not on ordinary ones.
 
 ## who changes a limit
 
