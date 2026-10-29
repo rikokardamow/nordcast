@@ -75,11 +75,11 @@ backfilled rows have `published_at` = isp start + the lag below and `vintage_qua
 
 | series | estimated published_at | measured / stated |
 |---|---|---|
-| satisfied_demand, dominating_direction | isp end + 15 min | first print 6.5–10.3 min after isp end |
+| satisfied_demand, dominating_direction | isp end + 15 min | first print 6.5–10.3 min after isp end (28 oct); on 28–29 oct median 6.8, but ~22 min in 3 of 16 watched isps, past the lag: re-measure after a week, then 25 min with the next re-backfill (docs/experiments/first-print-lags) |
 | imbalance_price_eur, afrr_up/down_mw | isp end + 45 min | filled in 5–20 min after the first print; afrr revised ~30 min after end |
-| mfrr_up/down_mw | isp end + 60 min | not measured; archived every 5 min from 28 oct to measure |
+| mfrr_up/down_mw | isp end + 60 min | measured 28–29 oct: posts ~4.5 min before the isp starts (scheduled ahead), 6 isps (docs/experiments/first-print-lags) |
 | da_price_eur | 13:00 copenhagen the day before | nord pool results ~12:45 cet |
-| wind_onshore_mw, wind_offshore_mw, solar_mw | isp end + 5 min | 5-min rows post before each 5 minutes ends |
+| wind_onshore_mw, wind_offshore_mw, solar_mw, residual_load_mw, flow_{de,nl,gb,no,se,dk2}_mw | isp end + 5 min | 5-min rows post before each 5 minutes ends; isp complete at most 2.9 min after its end (17 isps, 28–29 oct) |
 | wind_onshore_fc_da_mw, wind_offshore_fc_da_mw, solar_fc_da_mw | 18:30 copenhagen the day before | "updated close to 18:00 local danish time" (not 12:00 as backfill.md had) |
 | wind_onshore_fc_1h_mw, wind_offshore_fc_1h_mw | isp start − 51 min | "might be updated until 1 minute before the forecast starts" |
 | esett price, direction | isp end + 2 h | ~1 h (research note) |
@@ -100,11 +100,28 @@ backfilled rows have `published_at` = isp start + the lag below and `vintage_qua
 | wind_onshore_fc_da_mw / wind_offshore_fc_da_mw | 57,692 / 57,500 | 2025-03-01 |
 | wind_onshore_fc_1h_mw / wind_offshore_fc_1h_mw | 57,642 / 57,470 | 2025-03-01 |
 | solar_fc_da_mw | 57,884 | 2025-03-01 |
+| residual_load_mw (29 oct) | 58,122 | 2025-03-01 |
+| flow_de/nl/gb/no/se/dk2_mw (29 oct) | 58,122 each | 2025-03-01 |
 | esett direction / price | 134,051 each | 2021-11-01 |
 
 wind by type (28 oct 2026): the 5-min feed and `Forecasts_5Min` define offshore differently (substation vs generator location), and dk1 offshore production runs ~900 mw above its forecast (27 oct 11:00 utc: 2,000 against 1,094 mw, onshore within 10 mw). so each error is taken within its type; the combined `wind_mw`, `wind_fc_da_mw` and `wind_fc_1h_mw` keep their rows but get no new ones (migration 20261028210000).
 
 training window (from 1 oct 2025): 37,690 target isps, 22,909 of them after the 4 mar 2026 break. 1,000,259 observations in all after the first backfill; 1,346,620 backfilled rows after the wind split.
+
+## power layers (added 29 oct 2026)
+
+from `ElectricityProdex5MinRealtime`, no new api calls; migrations 20261029200000 and 20261029210000; docs/layers/.
+
+| series | built as | checked against | result |
+|---|---|---|---|
+| residual_load_mw (#32) | ProductionLt100MW + ProductionGe100MW + the six exchange columns = demand − wind − solar | `ProductionConsumptionSettlement`, hourly: central + local + commercial + hydro + unknown + exchanges | correlation 1.000 on 1–7 aug and 1–7 oct 2026, mean +50 / −2 mw; a fixed-week test pins it |
+| flow_de/nl/gb/no/se/dk2_mw (#33) | one exchange column each | the same dataset's exchange per border | correlation 1.000 (great belt 0.999), bias within ±12 mw; a fixed-week test per border |
+
+- **sign:** every real-time exchange column is + = import (tested per border against settlement, which states it).
+- **not added:** a derived real-time consumption (production + net import) runs up to ~700 mw low at summer midday: the 5-min `SolarPower` misses part of rooftop solar (614 vs settlement 740 mw, 1–7 aug 2026). residual load doesn't have the problem.
+- **no open capacity or scheduled flows** on energi data service for dk1's borders (entso-e needs a token; jao). #33 uses an observed limit instead.
+- **`DayAheadPrices` covers DE, DK1, DK2, NO2, SE3, SE4.** layer #31's neighbour prices are cached outside the record (`data/history/DayAheadPricesAll/`, gitignored); the record stays dk1-only.
+- **`ProductionConsumptionSettlement`** (hourly, published daily) changed method on 1 sep 2026 (datahub 3.0); used only as a check.
 
 ## weather (added 29 oct 2026)
 
