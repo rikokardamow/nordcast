@@ -11,7 +11,9 @@ from nordcast.calendar import RELEASE_KIND, isp_releases
 
 # Local Supabase from `supabase start`. Override with NORDCAST_TEST_DATABASE_URL.
 LOCAL_DB = "postgresql://postgres:postgres@127.0.0.1:44332/postgres"
-TEST_DB = "nordcast_test"
+# The suite drops and rebuilds this database, so two suites running at once
+# (two worktrees, two sessions) need different names or they break each other.
+TEST_DB = os.environ.get("NORDCAST_TEST_DB", "nordcast_test")
 MIGRATIONS = Path(__file__).parent.parent / "supabase" / "migrations"
 
 

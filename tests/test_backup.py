@@ -1,7 +1,7 @@
 """Backups: dump the test database through Docker, restore it, push it.
 
 Needs Docker and the local database, like the other database tests. Restores
-go to their own scratch database, never the one the Sunday review uses.
+go to their own scratch database, never the record's.
 """
 
 import contextlib

@@ -9,33 +9,6 @@ INSERT_OBSERVATION = (
 )
 
 
-def latest_values(conn, series_id):
-    """{observed_for: value} using the newest vintage of each period."""
-    rows = conn.execute(
-        "select distinct on (observed_for) observed_for, value from observation"
-        " where series_id = %s order by observed_for, published_at desc",
-        (series_id,),
-    ).fetchall()
-    return dict(rows)
-
-
-def release_times(conn, release_kind):
-    rows = conn.execute(
-        "select period_end, scheduled_at from release where release_kind = %s",
-        (release_kind,),
-    ).fetchall()
-    return dict(rows)
-
-
-def current_release(conn, release_kind, at):
-    row = conn.execute(
-        "select max(scheduled_at) from release"
-        " where release_kind = %s and scheduled_at <= %s",
-        (release_kind, at),
-    ).fetchone()
-    return row[0]
-
-
 def insert_observations(conn, observations):
     """Insert rows, returning how many were new."""
     added = 0

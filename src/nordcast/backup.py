@@ -249,9 +249,9 @@ STALE_AFTER_DAYS = 8
 
 
 def review_line(repo, now, admin_url=LOCAL_DB, scratch=SCRATCH):
-    """The Sunday review's backup line: how old it is, and a test restore."""
+    """One line on the backup: how old it is, and a test restore."""
     if not repo:
-        return "Backup: NOT SET UP (NORDCAST_BACKUP_REPO is empty; see docs/SETUP.md)."
+        return "Backup: NOT SET UP (NORDCAST_BACKUP_REPO is empty; set it in .env)."
     repo = Path(repo)
     when = last_backup(repo)
     if when is None or not (repo / DUMP).exists():
