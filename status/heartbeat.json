@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-10-29T18:58:32+00:00",
+  "last_freeze_at": "2026-10-29T18:58:25+00:00",
+  "on_time_24h": {
+    "due": 285,
+    "frozen": 6,
+    "rate": 0.0211
+  },
+  "challenger_rows_24h": 0,
+  "archive_last_pull": {
+    "forecasts_5min": "2026-10-29T06:25:43+00:00",
+    "imbalance_price": "2026-10-29T18:58:22+00:00",
+    "mfrr_activation": "2026-10-29T06:25:43+00:00",
+    "mfrr_request": "2026-10-29T18:58:22+00:00",
+    "power_system_right_now": "2026-10-29T18:58:22+00:00",
+    "prodex_5min": "2026-10-29T18:58:22+00:00"
+  }
+}
