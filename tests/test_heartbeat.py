@@ -31,7 +31,9 @@ def test_the_deadman_fails_on_a_quiet_mac_or_stalled_freezes():
     assert heartbeat.problems(
         beat(NOW - timedelta(minutes=76), NOW - timedelta(minutes=77)), NOW
     )
-    assert heartbeat.problems(beat(NOW, NOW - timedelta(minutes=16)), NOW)
+    # a freeze every ~15 min plus its 5-min window: 16 min is healthy, 21 isn't
+    assert heartbeat.problems(beat(NOW, NOW - timedelta(minutes=16)), NOW) == []
+    assert heartbeat.problems(beat(NOW, NOW - timedelta(minutes=21)), NOW)
     assert heartbeat.problems(
         {"generated_at": NOW.isoformat(), "last_freeze_at": None}, NOW
     )
@@ -66,7 +68,7 @@ def test_on_time_counts_calls_whose_window_has_passed(db):
     target = release[1]
     at = target + timedelta(minutes=1)  # every horizon's window has passed
     before = heartbeat.on_time(db, at, span=timedelta(minutes=75))
-    assert before["due"] > 0 and before["frozen"] == 0
+    assert before == {"due": 0, "frozen": 0, "rate": None}  # the record hasn't started
     row = freeze.make_row({"kind": "dk1_isp", "scheduled_at": release[2]}, target, 15, at,
                           "model", "model", "frozen", {"point": 1.0})  # fmt: skip
     db.execute(
@@ -75,7 +77,8 @@ def test_on_time_counts_calls_whose_window_has_passed(db):
     freeze.insert(db, release[0], row)
     db.execute("set session_replication_role = origin")
     after = heartbeat.on_time(db, at, span=timedelta(minutes=75))
-    assert after["frozen"] == 1 and after["due"] == before["due"]
+    # from the first freeze on: ISPs target..+15 at h15, ..+30 at h30, ..+60 at h60
+    assert after == {"due": 2 + 3 + 5, "frozen": 1, "rate": 0.1}
 
 
 def test_the_deadman_fails_when_the_archive_stops():

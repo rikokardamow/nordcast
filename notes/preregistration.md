@@ -2,6 +2,11 @@
 
 **status: draft, 29 oct 2026. becomes binding when committed with "Pre-register" in the message, before the challenger's first scored day. after that it changes only by a dated amendment below, never by an edit.**
 
+**open, mine to decide before committing:**
+1. **the bar.** the plan: lightgbm takes the call by beating persistence. notes/replay.md: the live model starts from the replay's winner, ar(1), which was ~20 % better than persistence on every horizon in round 4. this draft asks for both (the "second condition" below). alternatives: persistence only (plan as written), or ar(1) as the bar and the headline from now.
+2. **the window.** this draft: the challenger's first 60 full days (nordcast-plan.md, 28 oct). the earlier PROMPT said 30. with the record started by early december, 60 days closes in february, still before the 1 apr 2027 boundary; 30 doesn't move the earliest promotion.
+3. the window can only open once the jobs run on a clock (notes/incidents.md, 29 oct).
+
 ## the call
 
 - **target, volume:** `ImbalancePrice.SatisfiedDemand`, DK1, MW, + = up regulation (system short), per 15-min ISP. sign checked in `tests/test_sign_convention.py`.

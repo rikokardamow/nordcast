@@ -6,8 +6,8 @@ freeze rate and the newest pull of each archive feed. GitHub runs
 `python src/nordcast/heartbeat.py status/heartbeat.json`
 (.github/workflows/deadman.yml) on its own clock and fails, which emails
 me, when the Mac has gone quiet: no push for 75 min, or a heartbeat whose
-last freeze or last mfrrRequest pull was more than 15 min old when it was
-written.
+last freeze was more than 20 min old, or whose last mfrrRequest pull was
+more than 15 min old, when it was written.
 
 Standard library only, so the deadman needs no install.
 """
@@ -18,7 +18,10 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 MAX_AGE = timedelta(minutes=75)
-MAX_FREEZE_AGE = timedelta(minutes=15)  # an ISP every 15 min, three horizons
+# a freeze about every 15 min (every horizon's window opens at minutes 10-15
+# of the quarter hour), plus the 5-min window, so a heartbeat written just
+# before the next freeze doesn't raise a false alarm
+MAX_FREEZE_AGE = timedelta(minutes=20)
 MAX_PULL_AGE = timedelta(minutes=15)  # the archive pulls every 1-5 min
 WATCHED_FEED = "mfrr_request"  # every minute, and gone after 7 days
 PUSH_EVERY = timedelta(minutes=55)
@@ -35,13 +38,17 @@ def _parse(s):
 
 def on_time(conn, now, span=timedelta(hours=24)):
     """Calls due in the last `span` whose freeze window has passed, and how
-    many have a headline row: the SLO in notes/controls.md."""
+    many have a headline row: the SLO in notes/controls.md. Counted from the
+    record's first headline freeze, as scorecard.due_since does."""
     due, frozen = conn.execute(
         "select count(*), count(f.forecast_id) from release r"
         " cross join unnest(%s::int[]) as h(horizon)"
         " left join forecast f on f.release_id = r.release_id"
         "   and f.source_kind = 'model' and f.horizon_min = h.horizon"
         " where r.release_kind = 'dk1_isp'"
+        " and r.period_end >= coalesce((select min(r0.period_end) from forecast f0"
+        "   join release r0 using (release_id) where f0.source_kind = 'model'),"
+        "   'infinity')"
         " and r.period_end - make_interval(mins => h.horizon) <= %s"
         " and r.period_end - make_interval(mins => h.horizon) > %s",
         (list(HORIZONS), now, now - span),
