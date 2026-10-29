@@ -106,4 +106,19 @@ wind by type (28 oct 2026): the 5-min feed and `Forecasts_5Min` define offshore 
 
 training window (from 1 oct 2025): 37,690 target isps, 22,909 of them after the 4 mar 2026 break. 1,000,259 observations in all after the first backfill; 1,346,620 backfilled rows after the wind split.
 
+## weather (added 29 oct 2026)
+
+| field | open-meteo previous-runs api, dmi harmonie |
+|---|---|
+| endpoint | previous-runs-api.open-meteo.com/v1/forecast?models=dmi_harmonie_arome_europe |
+| use | feature (not yet in a model): 100 m wind speed and direction at six dk1 points: horns rev and anholt (offshore), rømø, hvide sande, hanstholm, skagen |
+| resolution | hourly, yesterday to two days ahead per pull |
+| licence | data cc by 4.0, "weather data by open-meteo.com"; the free api is for non-commercial use, which this public research record is |
+| republish raw? | yes, with attribution |
+| cost / key | 0 / none |
+| history start | `previous_day1` (the run about a day earlier) back to ~jul 2024, per the 28 oct research; not backfilled yet |
+| revision behaviour | each model run replaces the forecast; the archive keeps every version with its pull time (every 15 min) from 29 oct 2026 21:00 utc |
+| why not dmi directly | dmi's edr point service answered 429 ("server is busy") to every try on 28 and 29 oct; its stac grib files are 611 mb per lead time |
+| verified on | 29 oct 2026, live pull: 432 rows (6 points × 72 h), a second pull added 0 |
+
 not used: `api.data.energinet.dk` (needs an energinet azure service principal); dmi harmonie (deferred: 611 mb per stac grib lead time, edr returned 429).

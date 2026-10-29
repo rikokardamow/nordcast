@@ -57,6 +57,57 @@ def mfrr_request(client, now):
     ]
 
 
+OPEN_METEO = "https://previous-runs-api.open-meteo.com/v1/forecast"
+# DK1 wind: the two big offshore parks and four west/north coast sites. The
+# plan's "six coastal points", chosen here (29 Oct 2026); lat, lon.
+WEATHER_POINTS = {
+    "horns_rev": (55.48, 7.87),
+    "anholt": (56.60, 11.20),
+    "romo": (55.15, 8.50),
+    "hvide_sande": (56.00, 8.12),
+    "hanstholm": (57.12, 8.60),
+    "skagen": (57.72, 10.59),
+}
+WEATHER_VARS = (
+    "wind_speed_100m",
+    "wind_direction_100m",
+    "wind_speed_100m_previous_day1",
+)
+
+
+def harmonie(client, now):
+    """DMI HARMONIE (dmi_harmonie_arome_europe) at the six points, hourly, from
+    yesterday to two days ahead, through Open-Meteo: DMI's own point service
+    answers 429 to most requests, and its GRIB files are 611 MB per lead time.
+    Each pull records the forecast as it stood then; previous_day1 is the run
+    issued about a day earlier. Open-Meteo's free API is non-commercial."""
+    names = list(WEATHER_POINTS)
+    r = client.get(
+        OPEN_METEO,
+        params={
+            "latitude": ",".join(str(WEATHER_POINTS[n][0]) for n in names),
+            "longitude": ",".join(str(WEATHER_POINTS[n][1]) for n in names),
+            "hourly": ",".join(WEATHER_VARS),
+            "models": "dmi_harmonie_arome_europe",
+            "past_days": 1,
+            "forecast_days": 2,
+            "wind_speed_unit": "ms",
+            "timezone": "UTC",
+        },
+    )
+    r.raise_for_status()
+    body = r.json()
+    rows = []
+    for name, loc in zip(
+        names, body if isinstance(body, list) else [body], strict=True
+    ):
+        hourly = loc["hourly"]
+        for i, t in enumerate(hourly["time"]):
+            rows.append({"point": name, "time_utc": t,
+                         **{v: hourly[v][i] for v in WEATHER_VARS}})  # fmt: skip
+    return rows
+
+
 # name: (fetch, time column the daily partition is cut on, every n minutes)
 # Energi Data Service limits per IP, so the slower feeds run every 5 minutes.
 SOURCES = {
@@ -70,6 +121,8 @@ SOURCES = {
     # The next 2 h only: the calls look at most 61 min ahead, and the whole
     # horizon is reissued every 5 min (~580k rows a day uncapped).
     "forecasts_5min": (eds("Forecasts_5Min", "-PT30M", "PT2H"), "Minutes5UTC", 5),
+    # model runs every few hours; the archive keeps each version once
+    "harmonie": (harmonie, "time_utc", 15),
 }
 
 

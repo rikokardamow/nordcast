@@ -39,3 +39,23 @@ def test_split_by_data_day_and_new_column_tolerated(tmp_path):
         tmp_path, "ip", "TimeUTC", [{**ROWS[0], "TimeUTC": "2026-10-29T00:15:00"}], T2
     )
     assert pq.read_table(tmp_path / "ip" / "2026-10-29.parquet").num_rows == 2
+
+
+def test_harmonie_flattens_one_row_per_point_and_hour():
+    class Client:
+        def get(self, url, params):
+            n = len(params["latitude"].split(","))
+            body = [{"hourly": {"time": ["2026-10-29T00:00", "2026-10-29T01:00"],
+                                **{v: [1.0 + k, 2.0 + k] for v in archive.WEATHER_VARS}}}
+                    for k in range(n)]  # fmt: skip
+            return type(
+                "R",
+                (),
+                {"json": lambda self: body, "raise_for_status": lambda self: None},
+            )()
+
+    rows = archive.harmonie(Client(), T1)
+    assert len(rows) == 2 * len(archive.WEATHER_POINTS)
+    assert {r["point"] for r in rows} == set(archive.WEATHER_POINTS)
+    first = rows[0]
+    assert first["time_utc"] == "2026-10-29T00:00" and first["wind_speed_100m"] == 1.0
