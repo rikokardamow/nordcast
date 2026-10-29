@@ -6,6 +6,7 @@ The headline is persistence; LightGBM v1 runs beside it as a challenger and can 
 
 ![DK1, 20–26 Oct 2026](notebooks/01_look.png)
 
+<!-- scorecard -->
 | horizon | method | calls | direction hit | pinball vs persistence (90 % CI) | coverage q10–q90 | on-time | live since |
 |---|---|---|---|---|---|---|---|
 | 15 min | persistence (headline) | – | – | – | – | – | – |
@@ -14,5 +15,6 @@ The headline is persistence; LightGBM v1 runs beside it as a challenger and can 
 | 30 min | lightgbm_v1 (challenger) | – | – | – | – | – | – |
 | 60 min | persistence (headline) | – | – | – | – | – | – |
 | 60 min | lightgbm_v1 (challenger) | – | – | – | – | – | – |
+<!-- /scorecard -->
 
 Prior art: `jacobazu/dk1-imbalance-forecasting` (backtests DK1 quarter-hour imbalance spreads), `siddiqov/dk-power-imbalance-trading` (CatBoost on DK1/DK2 imbalance prices) and `nordic-balancing` (clients for eSett, Energinet and Fingrid prices). What nordcast adds: frozen, hashed, timestamped calls scored against the first print; the direction class; the replay log (`notes/replay-log.md`); published intervals. Pre-registration: `notes/preregistration.md`. Data: Energinet (CC BY 4.0).

@@ -16,6 +16,7 @@ uv run --quiet python jobs/score.py || echo "$(stamp) score failed"
 
 if [[ $(TZ=Europe/Copenhagen date +%H%M) -ge 0010 ]]; then
   if uv run --quiet python jobs/stamp_daily.py | grep -q '^Stamp'; then
+    uv run --quiet python jobs/scorecard.py || echo "$(stamp) scorecard failed"
     git push -q origin main 2>&1 || echo "$(stamp) push failed"
   fi
 fi
