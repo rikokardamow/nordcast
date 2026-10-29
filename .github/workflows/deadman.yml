@@ -1,0 +1,27 @@
+name: deadman
+
+# Fails (and GitHub emails me) when the Mac stops pushing its heartbeat, stops
+# freezing or stops archiving. Runs on GitHub, so it fires when the Mac is off.
+# Thresholds in src/nordcast/heartbeat.py. Quiet until the first heartbeat is
+# pushed; run by hand with "force" to test that the email arrives.
+on:
+  schedule:
+    - cron: "7,37 * * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Fail on purpose to test the alert"
+        type: boolean
+        default: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - if: ${{ inputs.force }}
+        run: echo "::error::forced failure, testing the deadman alert" && exit 1
+      - if: ${{ hashFiles('status/heartbeat.json') != '' }}
+        run: python3 src/nordcast/heartbeat.py status/heartbeat.json

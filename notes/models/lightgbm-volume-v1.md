@@ -3,7 +3,9 @@
 ```
 model:          lightgbm-volume-v1
 call:           dk1 imbalance volume (ImbalancePrice.SatisfiedDemand, mw, + up) q10/q50/q90, 15/30/60 min
-status:         built 28 oct 2026, not frozen live yet (challenger from step 6; earliest promotion 1 apr 2027)
+status:         challenger, frozen live beside persistence as lightgbm_v1 from step 6 (29 oct 2026 code;
+                the record starts when ops/install.sh runs). earliest promotion 1 apr 2027, per
+                notes/preregistration.md
 inputs:         energinet.dk1.{satisfied_demand, dominating_direction, imbalance_price_eur, afrr_up_mw,
                 afrr_down_mw, mfrr_up_mw, mfrr_down_mw, da_price_eur, wind_onshore_mw, wind_offshore_mw,
                 solar_mw, wind_onshore_fc_da_mw, wind_offshore_fc_da_mw, solar_fc_da_mw,
@@ -15,8 +17,9 @@ training:       1 oct 2025 - 27 oct 2026, 37,606 isps per horizon, estimated vin
                 not refit weekly yet.
 settings:       num_leaves 7, n_estimators 150, learning_rate 0.05, min_child_samples 50 (all horizons)
 assumptions:    - estimated publish times (notes/sources.md) err late, so training sees the target one isp
-                  staler than live does (4 isps back at 15 min, live 3). live serving must apply the same
-                  lags or the inputs shift (step 6).
+                  staler than live does (4 isps back at 15 min, live 3). live serving applies the same
+                  lags (challenger.nominal) and reads at min(now, isp start - h - 5 min); tested equal to a
+                  training row in tests/test_challenger.py.
                 - missing inputs are nan and lightgbm routes them down a learned branch. at 60 min the
                   1-hour wind forecasts are always missing (published 51 min before the isp).
                 - offshore wind is used only as its own error against its own forecast: the 5-min feed and
@@ -35,6 +38,7 @@ version:        code c775fdb + uncommitted step-4 work (features.py, model.py, j
                 artefacts data/models/lightgbm-v1-h{15,30,60}.pkl sha256
                 h15 db327da0b1b40b02…, h30 c9ecf0d189d719af…, h60 a067374958c4c99a… (full in manifest.json)
 changes:        28 oct 2026 first version.
+                29 oct 2026 frozen live as a challenger (no refit; artefacts unchanged).
                 28 oct 2026 tried: post-4-mar-2026 window only. worse at every horizon (pinball 33.4 vs
                 33.2 at 15 min, 35.0 vs 34.3 at 60). kept the pooled window.
 ```

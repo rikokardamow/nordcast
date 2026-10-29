@@ -109,3 +109,33 @@ def test_losses():
     assert out["pinball_q10"] == pytest.approx(0.1 * 30)
     assert out["direction_hit"] is False
     assert out["brier"] == pytest.approx(0.36 + 0.49 + 0.01)
+
+
+def fake_challenger(history, target, now, horizon):
+    return {"point": 1.0, "q10": 0.0, "q50": 1.0, "q90": 2.0, "direction": "up",
+            "p_up": 0.5, "p_down": 0.3, "p_none": 0.2, "model_version": f"fake-h{horizon}"}  # fmt: skip
+
+
+def test_a_challenger_freezes_beside_the_headline(live):
+    db, release = live
+    rows = freeze.freeze_rows(
+        db, release, 15, NOW, challengers=[("fake", fake_challenger)]
+    )
+    assert rows[0]["method"] == "model" and rows[0]["model_version"] == "v0-persistence"
+    (c,) = [r for r in rows if r["source_kind"] == "challenger"]
+    assert (c["method"], c["model_version"], c["q90"]) == ("fake", "fake-h15", "2.0")
+
+
+def test_a_failed_challenger_writes_no_row_and_blocks_nothing(live):
+    db, release = live
+
+    def broken(*_):
+        raise ZeroDivisionError("boom")
+
+    missed = []
+    rows = freeze.freeze_rows(
+        db, release, 15, NOW, challengers=[("broken", broken)], missed=missed
+    )
+    assert [r["source_kind"] for r in rows].count("challenger") == 0
+    assert rows[0]["status"] == "frozen"
+    assert missed == ["broken: ZeroDivisionError: boom"]

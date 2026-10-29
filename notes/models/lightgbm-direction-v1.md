@@ -3,7 +3,9 @@
 ```
 model:          lightgbm-direction-v1
 call:           dk1 dominating direction (ImbalancePrice.DominatingDirection) p_up/p_down/p_none, 15/30/60 min
-status:         built 28 oct 2026, not frozen live yet (challenger from step 6; earliest promotion 1 apr 2027)
+status:         challenger, frozen live beside persistence as lightgbm_v1 from step 6 (29 oct 2026 code;
+                the record starts when ops/install.sh runs). earliest promotion 1 apr 2027, per
+                notes/preregistration.md
 inputs:         as lightgbm-volume-v1 (same feature rows)
 training:       as lightgbm-volume-v1: multiclass booster on the first 60 %, isotonic calibration
                 (CalibratedClassifierCV on a FrozenEstimator) on 60-80 %, settings chosen by brier on the
@@ -22,6 +24,7 @@ pretraining:    n/a
 validation:     not run.
 version:        as lightgbm-volume-v1 (the direction model is in the same artefact)
 changes:        28 oct 2026 first version.
+                29 oct 2026 frozen live as a challenger (no refit; artefacts unchanged).
                 28 oct 2026 tried: fit on the post-4-mar-2026 window only (same validation slice). worse at
                 every horizon (brier 0.682 vs 0.662 at 15 min; 0.693 at 60, no better than constant
                 shares) and it still calls none on 0-0.3 % of isps. kept the pooled window.

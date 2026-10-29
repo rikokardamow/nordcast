@@ -9,6 +9,9 @@ Per ISP and horizon:
             until a model earns the call at a quarter boundary.
   baseline  persistence (the bar), persistence_ar1 (volume),
             direction_climatology (direction).
+  challenger  models building a live record before any promotion
+            (nordcast.challenger). One that fails writes no row; its miss
+            is reported by the job and counts against it.
 If the model fails, persistence is frozen in its place, flagged. If
 persistence itself can't be built, nothing is frozen and the job fails.
 """
@@ -105,8 +108,12 @@ def insert(conn, release_id, row):
         ) from exc
 
 
-def make_calls(history, target, now, model=v0_model):
-    """[(source_kind, method, status, call)] for one ISP, computed, not written."""
+def make_calls(history, target, now, model=v0_model, horizon=None, challengers=(),
+               missed=None):  # fmt: skip
+    """[(source_kind, method, status, call)] for one ISP, computed, not written.
+
+    challengers: (method, fn(history, target, now, horizon)). A failure is
+    appended to `missed` as "method: error" and never blocks the other calls."""
     bar = persistence_call(history, target, now)  # MissingData here fails the freeze
     try:
         call, status = model(history, target, now), "frozen"
@@ -125,10 +132,18 @@ def make_calls(history, target, now, model=v0_model):
             calls.append(("baseline", method, "frozen", fn(history, target, now)))
         except baselines.MissingData:
             pass  # a secondary baseline never blocks the bar or the model
+    for method, fn in challengers:
+        try:
+            call = fn(history, target, now, horizon)
+            calls.append(("challenger", method, "frozen", call))
+        except Exception as exc:  # noqa: BLE001
+            if missed is not None:
+                missed.append(f"{method}: {type(exc).__name__}: {exc}"[:200])
     return calls
 
 
-def freeze_rows(conn, release, horizon, now, model=v0_model):
+def freeze_rows(conn, release, horizon, now, model=v0_model, challengers=(),
+                missed=None):  # fmt: skip
     """Freeze every call for `release` (the ISP) at `horizon`. Returns the rows."""
     release_id, target, due = release
     if target - now < timedelta(minutes=horizon):
@@ -136,7 +151,9 @@ def freeze_rows(conn, release, horizon, now, model=v0_model):
     meta = {"kind": "dk1_isp", "scheduled_at": due}
     rows = [
         make_row(meta, target, horizon, now, kind, method, status, call)
-        for kind, method, status, call in make_calls(_history(conn), target, now, model)
+        for kind, method, status, call in make_calls(
+            _history(conn), target, now, model, horizon, challengers, missed
+        )
     ]
     with conn.transaction():
         for r in rows:
