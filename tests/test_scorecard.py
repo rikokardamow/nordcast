@@ -46,3 +46,29 @@ def test_replace_swaps_only_the_marked_block():
     assert "no scored calls yet" in out and "old" not in out
     with pytest.raises(ValueError):
         scorecard.replace("no markers", "x")
+
+
+def test_brier_against_persistence_and_climatology():
+    rows = []
+    for k in range(8):
+        isp = T0 + k * ISP
+        rows += [
+            (isp, 15, "model", "model", 10.0, 1.0, True, True),
+            (isp, 15, "baseline", "persistence", 10.0, 1.0, True, True),
+            (isp, 15, "baseline", "direction_climatology", None, 0.6, False, None),
+            (isp, 15, "challenger", "lightgbm_v1", 9.0, 0.55, True, True),
+        ]
+    table = scorecard.lines(rows, {15: 8})
+    assert {r["method"] for r in table} == {"headline", "lightgbm_v1 (challenger)"}
+    (c,) = [r for r in table if r["method"] == "lightgbm_v1 (challenger)"]
+    assert c["brier_vs_persistence"][0] == pytest.approx(0.45)
+    assert c["brier_vs_climatology"][0] == pytest.approx(0.05)
+    assert "+0.050" in scorecard.markdown(table)
+
+
+def test_a_missed_call_takes_persistence_against_climatology_too():
+    pers = {T0: 1.0, T0 + ISP: 1.0}
+    clim = {T0: 0.6, T0 + ISP: 0.6}
+    # one call made (0.5), one missed: filled with persistence's 1.0, not clim's
+    got = scorecard.skill(clim, {T0: 0.5}, fill=pers)
+    assert got[0] == pytest.approx((0.1 - 0.4) / 2)
