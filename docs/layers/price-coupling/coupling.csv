@@ -1,0 +1,5 @@
+border,isps,coupled,coupled_within_0.5,at_limit_when_coupled,at_limit_when_split,flow_toward_dearer_when_split,mean_abs_spread
+DK1-DE,37728,0.377,0.491,0.005,0.024,0.701,7.047
+DK1-DK2,37728,0.196,0.446,0.011,0.029,0.746,5.609
+DK1-NO2,37728,0.004,0.033,0.044,0.196,0.901,19.369
+DK1-SE3,37728,0.008,0.055,0.032,0.325,0.851,42.509
