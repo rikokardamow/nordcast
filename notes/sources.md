@@ -79,9 +79,9 @@ backfilled rows have `published_at` = isp start + the lag below and `vintage_qua
 | imbalance_price_eur, afrr_up/down_mw | isp end + 45 min | filled in 5–20 min after the first print; afrr revised ~30 min after end |
 | mfrr_up/down_mw | isp end + 60 min | not measured; archived every 5 min from 28 oct to measure |
 | da_price_eur | 13:00 copenhagen the day before | nord pool results ~12:45 cet |
-| wind_mw, solar_mw | isp end + 5 min | 5-min rows post before each 5 minutes ends |
-| wind_fc_da_mw, solar_fc_da_mw | 18:30 copenhagen the day before | "updated close to 18:00 local danish time" (not 12:00 as backfill.md had) |
-| wind_fc_1h_mw | isp start − 51 min | "might be updated until 1 minute before the forecast starts" |
+| wind_onshore_mw, wind_offshore_mw, solar_mw | isp end + 5 min | 5-min rows post before each 5 minutes ends |
+| wind_onshore_fc_da_mw, wind_offshore_fc_da_mw, solar_fc_da_mw | 18:30 copenhagen the day before | "updated close to 18:00 local danish time" (not 12:00 as backfill.md had) |
+| wind_onshore_fc_1h_mw, wind_offshore_fc_1h_mw | isp start − 51 min | "might be updated until 1 minute before the forecast starts" |
 | esett price, direction | isp end + 2 h | ~1 h (research note) |
 | mfrr_request | exact: each issue's `timeStamp` | from 7.5 min before the mtu; 7 days kept upstream |
 
@@ -95,12 +95,15 @@ backfilled rows have `published_at` = isp start + the lag below and `vintage_qua
 | afrr_up_mw / afrr_down_mw | 57,918 each | 2025-03-04 11:15 |
 | mfrr_up_mw / mfrr_down_mw | 57,969 each | 2025-03-03 23:00 |
 | da_price_eur | 37,820 | 2025-10-01 |
-| wind_mw / solar_mw | 58,021 each | 2025-03-01 |
-| wind_fc_da_mw | 57,500 | 2025-03-01 |
-| wind_fc_1h_mw | 57,421 | 2025-03-01 |
+| wind_onshore_mw / wind_offshore_mw | 58,024 each | 2025-03-01 |
+| solar_mw | 58,021 | 2025-03-01 |
+| wind_onshore_fc_da_mw / wind_offshore_fc_da_mw | 57,692 / 57,500 | 2025-03-01 |
+| wind_onshore_fc_1h_mw / wind_offshore_fc_1h_mw | 57,642 / 57,470 | 2025-03-01 |
 | solar_fc_da_mw | 57,884 | 2025-03-01 |
 | esett direction / price | 134,051 each | 2021-11-01 |
 
-training window (from 1 oct 2025): 37,690 target isps, 22,909 of them after the 4 mar 2026 break. 1,000,259 observations in all.
+wind by type (28 oct 2026): the 5-min feed and `Forecasts_5Min` define offshore differently (substation vs generator location), and dk1 offshore production runs ~900 mw above its forecast (27 oct 11:00 utc: 2,000 against 1,094 mw, onshore within 10 mw). so each error is taken within its type; the combined `wind_mw`, `wind_fc_da_mw` and `wind_fc_1h_mw` keep their rows but get no new ones (migration 20261028210000).
+
+training window (from 1 oct 2025): 37,690 target isps, 22,909 of them after the 4 mar 2026 break. 1,000,259 observations in all after the first backfill; 1,346,620 backfilled rows after the wind split.
 
 not used: `api.data.energinet.dk` (needs an energinet azure service principal); dmi harmonie (deferred: 611 mb per stac grib lead time, edr returned 429).
