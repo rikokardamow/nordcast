@@ -62,6 +62,7 @@ def day_bootstrap(pos, y, target):
 rows, frames = [], {}
 for h in (15, 30, 60):
     c = pd.read_parquet(D / f"calls_h{h}.parquet").set_index("target", drop=False)
+    c = c[c.replay_window]  # 1 Oct 2025 - 30 Sep 2026
     pos = {name: positions.build_positions(name, c, h) for name in ("forecast", "persistence")}
     frames[h] = c.assign(**{f"{k}_mw": v for k, v in pos.items()})
     for name, p in pos.items():

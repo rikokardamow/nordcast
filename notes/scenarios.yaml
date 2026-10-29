@@ -1,0 +1,14 @@
+# L3 stress scenarios for the hold-into-imbalance strategy (notes/later/risk-trading-layers.md).
+# Written before the stress was run. Every scenario runs under notes/limits.md.
+storm_week:
+  description: the 20-26 Oct 2026 storm week, replayed with the strategy's own calls
+  from: "2026-10-20"   # Copenhagen days, inclusive
+  to: "2026-10-26"
+feed_outage:
+  description: the archive stops; the position held through missing prints at the last call
+  hold_hours: 6        # no new information for this long
+worst_day:
+  description: the worst Copenhagen day of the strategy's own history
+not_run:
+  pilot_first_week: the 2024 pilot isn't in this record (ImbalancePrice starts 4 Mar 2025)
+  scarcity_spring_2025: 4 Mar - 1 Jun 2025 is before the clean window; no calls exist for it

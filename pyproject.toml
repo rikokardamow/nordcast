@@ -38,4 +38,5 @@ reports = [
     "matplotlib>=3.11.2",
     "nbconvert>=7.17.2",
     "pandas>=3.1.0",
+    "pyyaml>=6.0",
 ]
