@@ -118,6 +118,25 @@ SERIES = {
         _after_end(5),
         resolution_min=5,
     ),
+    # Layer #32: demand - wind - solar, measured as thermal production + net
+    # import (exchanges are + = import, tested). Exact by energy balance, so the
+    # rooftop solar the feed misses drops out (docs/layers/residual-load).
+    "energinet.dk1.residual_load_mw": Series(
+        "ElectricityProdex5MinRealtime",
+        "Minutes5UTC",
+        (
+            "ProductionLt100MW",
+            "ProductionGe100MW",
+            "ExchangeGreatBelt",
+            "ExchangeGermany",
+            "ExchangeNetherlands",
+            "ExchangeGreatBritain",
+            "ExchangeNorway",
+            "ExchangeSweden",
+        ),
+        _after_end(5),
+        resolution_min=5,
+    ),
     # "updated close to 18:00 local Danish time" for the following day
     "energinet.dk1.wind_onshore_fc_da_mw": Series(
         "Forecasts_5Min",

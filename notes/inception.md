@@ -1,6 +1,6 @@
 # inception – first row per dataset
 
-probed 28 Oct 2026 by jobs/backfill.py (energi data service `dataFrom`; esett from its documented start, checked by the first pull).
+probed 29 Oct 2026 by jobs/backfill.py (energi data service `dataFrom`; esett from its documented start, checked by the first pull).
 
 | dataset | inception | backfilled from |
 |---|---|---|
