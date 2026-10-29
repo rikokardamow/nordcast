@@ -76,3 +76,14 @@ def test_load_skips_mfrr_request_pulls_already_loaded(db, tmp_path, monkeypatch)
     )
     assert live.load(db, tmp_path, now, state)["mfrr_request"] == 1
     assert calls[-1] == 1
+
+
+def test_day_ahead_prices_load_as_an_exact_vintage_at_their_pull_time():
+    row = {"TimeUTC": "2026-10-30T11:00:00", "PriceArea": "DK1",
+           "DayAheadPriceEUR": 85.2, "DayAheadPriceDKK": 636.0, "pulled_at_utc": P1}  # fmt: skip
+    (obs,) = live.replay("DayAheadPrices", [row], None)
+    assert (obs["series_id"], obs["value"], obs["published_at"]) == (
+        "energinet.dk1.da_price_eur",
+        85.2,
+        P1,
+    )

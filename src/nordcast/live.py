@@ -26,6 +26,7 @@ DATASETS = {
     "mfrr_activation": "MfrrEnergyActivationMarket",
     "prodex_5min": "ElectricityProdex5MinRealtime",
     "forecasts_5min": "Forecasts_5Min",
+    "day_ahead_prices": "DayAheadPrices",
 }
 KEY_EXTRA = ("PriceArea", "ForecastType")
 

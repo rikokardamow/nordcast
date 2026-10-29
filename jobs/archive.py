@@ -123,6 +123,9 @@ SOURCES = {
     "forecasts_5min": (eds("Forecasts_5Min", "-PT30M", "PT2H"), "Minutes5UTC", 5),
     # model runs every few hours; the archive keeps each version once
     "harmonie": (harmonie, "time_utc", 15),
+    # tomorrow's prices appear ~12:45 Copenhagen; a feature of every call, so the
+    # live record must not depend on a backfill being rerun to see them
+    "day_ahead_prices": (eds("DayAheadPrices", "-P1D", "P2D"), "TimeUTC", 15),
 }
 
 
