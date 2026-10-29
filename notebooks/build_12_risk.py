@@ -122,7 +122,7 @@ for name, label in (("persistence", "persistence"), ("forecast", "ar(1)")):
     held = frame.pos_mw.fillna(0).copy()
     earned = pnl.earned_per_mw(c).reindex(held.index)
     worst = None
-    for start in range(0, len(held) - k, k):
+    for start in range(len(held) - k):  # every start, like the variant below
         block = slice(start, start + k)
         frozen = held.iloc[start] * earned.iloc[block] - abs(held.iloc[start]) * pnl.ISP_HOURS * pnl.SLIPPAGE_EUR_MWH
         loss = frozen.sum(min_count=1)
@@ -131,19 +131,31 @@ for name, label in (("persistence", "persistence"), ("forecast", "ar(1)")):
     rows.append({"strategy": label, "scenario": f"feed outage, {SCEN['feed_outage']['hold_hours']} h held",
                  "net_eur": worst[0], "worst_day_eur": None, "days_covered": None,
                  "when": worst[1].tz_convert(CPH).strftime("%d %b %Y %H:%M")})
+    r = SCEN["feed_outage_under_rules"]
+    k2, cap = int(r["hold_hours"] * 4), r["cap_mw"]
+    worst2 = None
+    for start in range(len(held) - k2):
+        p0 = held.iloc[start].clip(-cap, cap)
+        loss = (p0 * earned.iloc[start : start + k2] - abs(p0) * pnl.ISP_HOURS * pnl.SLIPPAGE_EUR_MWH).sum(min_count=1)
+        if pd.notna(loss) and (worst2 is None or loss < worst2[0]):
+            worst2 = (loss, held.index[start])
+    rows.append({"strategy": label, "scenario": f"feed outage under the rules ({cap} MW, {r['hold_hours']} h)",
+                 "net_eur": worst2[0], "when": worst2[1].tz_convert(CPH).strftime("%d %b %Y %H:%M")})
     rows.append({"strategy": label, "scenario": "worst day", "net_eur": d.min(),
                  "when": str(d.idxmin())})
 pd.DataFrame(rows).set_index(["strategy", "scenario"]).round(0)"""
     ),
     md(
         "## What the stress says\n\n"
-        "A feed outage is the scenario the limits don't cover. With no prints arriving, the daily "
-        "loss limit can't see the loss build up, and the stale-feed guardrail only caps the "
-        "position at 2.5 MW instead of flattening it; so a position held through hours of outage "
-        "can lose more than the EUR 5,000 the limit is meant to stop at (the outage row above). The "
-        "fix belongs to the owner of notes/limits.md: flatten, not cap, once the feed has been "
-        "stale for a set time. Historical simulation, expected to fail, passes here: with ~245 "
-        "backtest days the tests have little power, so that is no verdict either way."
+        "Held at full size through a 6-hour outage, as the layer notes frame the scenario, "
+        "persistence could have lost about three times the EUR 5,000 daily limit: with no prints the "
+        "limit can't see the loss. The strategy's own rules don't allow that hold, though. A stale "
+        "feed caps the position at 2.5 MW, and once the latest known ISP is 2 h old persistence "
+        "can't build a call, so there is no position; run that way, the worst outage stays just "
+        "inside the limit (the 'under the rules' row, a scenario added after the first run). The "
+        "margin is thin, so flattening rather than capping on a stale feed is the change worth "
+        "considering in notes/limits.md. Historical simulation, expected to fail, passes here: with "
+        "~245 backtest days the tests have little power, so that is no verdict either way."
     ),
     md(
         "## Where the sources disagree\n\n"

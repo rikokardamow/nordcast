@@ -12,3 +12,10 @@ worst_day:
 not_run:
   pilot_first_week: the 2024 pilot isn't in this record (ImbalancePrice starts 4 Mar 2025)
   scarcity_spring_2025: 4 Mar - 1 Jun 2025 is before the clean window; no calls exist for it
+feed_outage_under_rules:
+  # added 29 Oct 2026 after the first stress run, which held a full position for
+  # 6 h: the strategy's own rules don't allow that, so this is the outage as the
+  # system would actually run it
+  description: a stale feed caps the position at 2.5 MW; after 2 h persistence can't build a call, so no position
+  cap_mw: 2.5
+  hold_hours: 2
