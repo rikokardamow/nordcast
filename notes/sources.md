@@ -50,7 +50,7 @@ the convention is yours to confirm; the data says positive = up, with no excepti
 | cost | 0 | 0 | 0 | 0 | 0 |
 | rate limit | http 429; back off 60 s | same | ≤ 1 req/s recommended | same | same |
 | history start | 4 mar 2025 11:15 utc | 3 mar 2025 23:00 utc | 7 days only (rolling) | (inception probe, step 2) | (step 2) |
-| revision behaviour | first print kept; revisions as new vintages; null price = suspended, published next working day | 26 apr 2026 00:15–08:15 dk wrong, not corrected | values for an mtu appear 7.5 min before its start | "errors will occur, and will generally not be corrected" | – |
+| revision behaviour | first print kept; revisions as new vintages; null price = suspended, published next working day | 26 apr 2026 00:15–08:15 dk wrong, not corrected | values for an mtu appear 7.5 min before its start; `timeStamp` is the issue time to the aof, up to ~20 min earlier, **not** the publication time (series `mfrr_request_public` since 29 oct 2026; the first series, published at timeStamp, leaked and is superseded) | "errors will occur, and will generally not be corrected" | – |
 | known breaks | 19 mar 2025, 2 jun 2025, 1 oct 2025, 4 mar 2026, mari (q1 2027) | – | – | imbalance + mfrr columns deleted | – |
 | archived since | 28 oct 2026 18:16 utc, every minute, last 2 days | not archived (history is kept) | 28 oct 2026, every minute, last 30 min | 28 oct 2026, last 30 min | 28 oct 2026, last 30 min |
 | verified on | 28 oct 2026, api metadata + full-history check above | same | 28 oct 2026, api guide page | 28 oct 2026, api metadata | 28 oct 2026, api sample |
@@ -120,5 +120,7 @@ training window (from 1 oct 2025): 37,690 target isps, 22,909 of them after the 
 | revision behaviour | each model run replaces the forecast; the archive keeps every version with its pull time (every 15 min) from 29 oct 2026 21:00 utc |
 | why not dmi directly | dmi's edr point service answered 429 ("server is busy") to every try on 28 and 29 oct; its stac grib files are 611 mb per lead time |
 | verified on | 29 oct 2026, live pull: 432 rows (6 points × 72 h), a second pull added 0 |
+
+mfrrrequest's lead, 29 oct 2026: at a 15-min freeze the newest public request is for the isp before the target; on the 25 isps measurable so far it correlates 0.36 with the target (30 min: −0.26 on 22). too few to judge; measure again once the archive has weeks. the leaked first series had shown 0.68.
 
 not used: `api.data.energinet.dk` (needs an energinet azure service principal); dmi harmonie (deferred: 611 mb per stac grib lead time, edr returned 429).

@@ -104,15 +104,25 @@ def test_esett_placeholder_zeros_are_dropped():
     }
 
 
-def test_mfrr_request_issues_are_exact_vintages():
+def test_an_mfrr_request_is_public_no_earlier_than_7_5_min_before_its_mtu():
     nested = [
-        {"timeStamp": "2026-10-28T18:00:01+00:00", "mtuStart": "2026-10-28T18:15:00+00:00",
+        {"timeStamp": "2026-10-28T17:55:01+00:00", "mtuStart": "2026-10-28T18:15:00+00:00",
          "values": [{"area": "DK1", "value": -86}, {"area": "DK2", "value": 0}]},
     ]  # fmt: skip
     (obs,) = energinet_rt.to_observations(nested)
+    assert obs["series_id"] == "energinet.dk1.mfrr_request_public"
     assert obs["observed_for"] == datetime(2026, 10, 28, 18, 15, tzinfo=UTC)
-    assert obs["published_at"] == datetime(2026, 10, 28, 18, 0, 1, tzinfo=UTC)
+    # issued at 17:55:01, but not public until 18:07:30
+    assert obs["published_at"] == datetime(2026, 10, 28, 18, 7, 30, tzinfo=UTC)
     assert obs["vintage_quality"] == "exact"
+
+
+def test_an_archived_mfrr_request_is_published_at_its_pull_time():
+    pulled = datetime(2026, 10, 28, 18, 9, 12, tzinfo=UTC)
+    row = {"timeStamp": "2026-10-28T17:55:01+00:00", "mtuStart": "2026-10-28T18:15:00+00:00",
+           "area": "DK1", "value": -86, "pulled_at_utc": pulled}  # fmt: skip
+    (obs,) = energinet_rt.to_observations([row])
+    assert obs["published_at"] == pulled
 
 
 @recorder.use_cassette("energinet_imbalance_price_day.yaml")
