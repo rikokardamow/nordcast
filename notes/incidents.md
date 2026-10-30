@@ -27,3 +27,12 @@ one entry per incident, per controls.md §5: date, detected by, what broke, reco
 - **root cause:** (1) unknown. (2) per-probability rounding against a sum check, and a challenger row inside the headline's transaction. (3) expected after any archive gap: data loaded late is late.
 - **fix:** (2) `3f8737f`: p_none is the remainder of the rounded p_up and p_down; each challenger row in its own savepoint. (1) watched by the deadman once the heartbeat is pushed.
 - **prevention:** the soak counts from 19:22 utc 29 oct, the reload.
+
+## 2026-10-29/30 – mac off overnight, agents didn't come back: 21.9 h down
+
+- **detected by:** the deadman on github (failing from 23:54 utc 29 oct; github ran it about every 6 h, not every 30 min), and me at 19:54 utc 30 oct.
+- **what happened:** the last run was 22:14 utc 29 oct; the mac slept and shut down. it rebooted at 06:17 utc 30 oct, shut down at 06:48, and rebooted at 19:43. the three plists stayed in `~/Library/LaunchAgents`, but launchd hadn't loaded them after either reboot, though i logged in at 19:44. restored by `ops/install.sh` at about 20:01. first calls back: 20:10:59 utc, headline and challenger, all horizons.
+- **record impact:** of 264 headline calls due between 22:14 utc 29 oct and 20:05 utc 30 oct, 3 were frozen and **261 were missed**, all scored as misses. the challenger missed the same. the 7-day soak from 29 oct is void; it counts from 20:01 utc 30 oct, so the report is due after 20:01 utc 6 nov. g1 can't be met on 28 nov: 30 clean days from 31 oct end on 29 nov. the challenger's window can open on 31 oct at the earliest, closing 29 dec. a one-off pull at 20:01 utc 30 oct refilled `PowerSystemRightNow`, the 5-min feed and `mfrrRequest`; `ImbalancePrice` and mfrr activation needed nothing. refilled rows carry that pull's `pulled_at_utc`, so they're late vintages, not first prints. `Forecasts_5Min` revisions from the gap are gone.
+- **root cause:** (1) power settings: `sleep 1`, `autorestart 0`. (2) why the agents didn't load at login: not found. they aren't in launchd's disabled list and the system log has no entry for them; macOS's login-items setting is unchecked. (3) no auto-login, so agents can't start after a reboot until someone logs in.
+- **fix:** agents reinstalled. **not fixed:** `sudo pmset -a sleep 0 autorestart 1` still needs the owner's password, and a reboot would still stop the record.
+- **prevention:** the pmset change, the login-items check, then one deliberate reboot to prove recovery. if the soak misses again, move to an always-on host.
