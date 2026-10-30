@@ -64,7 +64,7 @@ one line per change that touches the record: date, what, why, model card diff li
 | gasbook, wpsr | 100 % of weeks | freezes before release |
 | all | first-print capture ≤ 30 min after publication | pulled_at − published |
 
-incident entry: date, detected by (deadman / ci / me), what broke, record impact (how many calls missed or late), root cause, fix, prevention. missed calls are scored as misses on the public scorecard, with a footnote to the incident.
+incident entry: date, detected by (health check / daily tests / me), what broke, record impact (how many calls missed or late), root cause, fix, prevention. missed calls are scored as misses on the public scorecard, with a footnote to the incident.
 
 ## 6. published kpis (scorecard page header)
 

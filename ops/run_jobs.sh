@@ -32,6 +32,12 @@ if [[ $(TZ=Europe/Copenhagen date +%H%M) -ge 0010 ]]; then
   if uv run --quiet python jobs/stamp_daily.py | grep -q '^Stamp'; then
     uv run --quiet python jobs/scorecard.py || echo "$(stamp) scorecard failed"
     push_own stamp
+    # Once a day, after the stamp: the full suite, on its own test database so
+    # it can't drop one another session is using.
+    if ! out=$(NORDCAST_TEST_DB=nordcast_test_daily uv run --quiet pytest -q 2>&1); then
+      echo "$(stamp) daily tests failed: ${out##*$'\n'}"
+      osascript -e 'display notification "The daily test run failed: see the jobs log" with title "nordcast"'
+    fi
   fi
 fi
 
@@ -45,10 +51,10 @@ fi
 # Minute 05 of each hour; launchd's start drift can skip one, the next hour covers it.
 if [[ $(date -u +%M) == 05 ]]; then
   uv run --quiet python -c 'from nordcast import backup; backup.run("hourly")'
-  # Energinet's column definitions against the pin; a redefinition reaches the
-  # log and the screen. No output and exit 0 when unchanged or unreachable.
-  if ! uv run --quiet pytest -q tests/test_eds_definitions.py >/dev/null 2>&1; then
-    echo "$(stamp) EDS definitions changed: see tests/test_eds_definitions.py"
-    osascript -e 'display notification "Energinet changed a column definition" with title "nordcast"'
+  # Energinet's column definitions and sign against the pins; a change reaches
+  # the log and the screen. Exit 0 when unchanged or unreachable.
+  if ! uv run --quiet pytest -q tests/test_eds_definitions.py tests/test_sign_convention.py >/dev/null 2>&1; then
+    echo "$(stamp) EDS definitions or sign changed: see tests/test_eds_definitions.py, tests/test_sign_convention.py"
+    osascript -e 'display notification "Energinet changed a column definition or sign" with title "nordcast"'
   fi
 fi
