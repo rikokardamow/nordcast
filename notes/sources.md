@@ -51,7 +51,7 @@ the convention is yours to confirm; the data says positive = up, with no excepti
 | rate limit | http 429; back off 60 s | same | ≤ 1 req/s recommended | same | same |
 | history start | 4 mar 2025 11:15 utc | 3 mar 2025 23:00 utc | 7 days only (rolling) | (inception probe, step 2) | (step 2) |
 | revision behaviour | first print kept; revisions as new vintages; null price = suspended, published next working day | 26 apr 2026 00:15–08:15 dk wrong, not corrected | values for an mtu appear 7.5 min before its start; `timeStamp` is the issue time to the aof, up to ~20 min earlier, **not** the publication time (series `mfrr_request_public` since 29 oct 2026; the first series, published at timeStamp, leaked and is superseded) | "errors will occur, and will generally not be corrected" | – |
-| known breaks | 19 mar 2025, 2 jun 2025, 1 oct 2025, 4 mar 2026, mari (q1 2027) | – | – | imbalance + mfrr columns deleted | – |
+| known breaks | 19 mar 2025, 2 jun 2025, 1 oct 2025, 4 mar 2026, mari (no firm date; sep–oct 2027 likely, notes/mari-plan.md) | – | – | imbalance + mfrr columns deleted | – |
 | archived since | 28 oct 2026 18:16 utc, every minute, last 2 days | not archived (history is kept) | 28 oct 2026, every minute, last 30 min | 28 oct 2026, last 30 min | 28 oct 2026, last 30 min |
 | verified on | 28 oct 2026, api metadata + full-history check above | same | 28 oct 2026, api guide page | 28 oct 2026, api metadata | 28 oct 2026, api sample |
 

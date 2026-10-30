@@ -68,4 +68,4 @@ the history is not one market. backtests and the replay split on these and never
 - 4 mar – 1 jun 2025: nordic mfrr eam live, spikes (dk2 near dkk 75/kwh), avg imbalance cost ~4x
 - 2 jun 2025 onward: 25 mw threshold, the 'none' direction appears
 - 1 oct 2025 onward: 15-min day-ahead. the only window that's 15-min on every layer, ~13 months
-- q1 2027 (target): mari accession. retrain at that boundary.
+- mari accession, no firm date, sep–oct 2027 likely (was q1 2027; notes/mari-plan.md). retrain after it.

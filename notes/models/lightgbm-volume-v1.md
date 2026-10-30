@@ -33,7 +33,7 @@ known limits:   - the band is under-wide on a short window: refit on Oct-Dec 202
                 - the chosen settings sit at the small corner of the grid (7 leaves, 150 trees), twice: the
                   grid was moved down once and the corner moved with it. the model is near the edge of
                   what this window supports; a smaller grid or more regularisation is the next thing to try.
-                - nothing seen of mari (q1 2027): retrain at that boundary.
+                - nothing seen of mari (sep-oct 2027 likely): notes/mari-plan.md.
                 - one regime-pooled model; the 4 mar 2026 split is a feature, not separate fits.
 pretraining:    n/a
 validation:     not run. checklist in controls.md §3, in a fresh session.

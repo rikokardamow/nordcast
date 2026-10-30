@@ -49,7 +49,7 @@ the headline call stays persistence until lightgbm beats it over the pre-registe
 
 ### phase 4 – rust book and site (q2 2027 at the earliest)
 
-per stack-web-rust.md, only if phases 1–3 are live and boring. the book stays "simulated, german/dutch-calibrated" (no dk1 calibration exists; nord pool order data is paid). mari accession (target q1 2027) is a regime break that comes first: retrain, re-validate, note it in the record.
+per stack-web-rust.md, only if phases 1–3 are live and boring. the book stays "simulated, german/dutch-calibrated" (no dk1 calibration exists; nord pool order data is paid). mari accession (target q1 2027 when this was written; now no firm date, sep–oct 2027 likely, notes/mari-plan.md) is a regime break that comes first: retrain, re-validate, note it in the record.
 
 ## the sign-convention check (phase 0, ~2 h)
 
