@@ -138,6 +138,18 @@ from `ElectricityProdex5MinRealtime`, no new api calls; migrations 2026102920000
 | why not dmi directly | dmi's edr point service answered 429 ("server is busy") to every try on 28 and 29 oct; its stac grib files are 611 mb per lead time |
 | verified on | 29 oct 2026, live pull: 432 rows (6 points × 72 h), a second pull added 0 |
 
+| field | copernicus cds, era5 single levels |
+|---|---|
+| endpoint | `reanalysis-era5-single-levels` via `cdsapi` (jobs/backfill_era5.py) |
+| use | truth, not a forecast: `era5.<point>.ws100` at the same six points, nearest 0.25° cell, parquet only under `data/history/era5/`. never a forecast or live feature |
+| resolution | hourly |
+| licence | cc by 4.0; must be accepted on the dataset page, per account |
+| cost / key | 0 / free key in `~/.cdsapirc` |
+| limits | a 31-day month estimates at about 8,900 of a 121,000 request limit (scaled from one day, 30 oct 2026). no published rate numbers; cds asks for sequential requests and may disable accounts over parallel or repeated invalid ones |
+| revision behaviour | preliminary era5t is replaced after 2–3 months, so the job takes a month only 90 days after it ends |
+| not used | `reanalysis-era5-single-levels-timeseries`: its catalogue entry ended 6 dec 2024 when checked on 30 oct 2026 |
+| verified on | not yet: no data pulled, the era5 licence isn't accepted. the file reader is tested on a synthetic file only |
+
 mfrrrequest's lead, 29 oct 2026: at a 15-min freeze the newest public request is for the isp before the target; on the 25 isps measurable so far it correlates 0.36 with the target (30 min: −0.26 on 22). too few to judge; measure again once the archive has weeks. the leaked first series had shown 0.68.
 
 not used: `api.data.energinet.dk` (needs an energinet azure service principal); dmi harmonie (deferred: 611 mb per stac grib lead time, edr returned 429).

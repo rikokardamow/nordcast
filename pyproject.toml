@@ -24,6 +24,10 @@ dev = [
     "ruff>=0.17.2",
     "vcrpy>=9.2.0",
 ]
+era5 = [
+    "cdsapi>=0.7.7",
+    "netcdf4>=1.7",
+]
 models = [
     "lightgbm>=4.6",
     "mapie>=1.0",
