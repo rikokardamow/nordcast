@@ -89,3 +89,5 @@ review (draft, replay/2026q3/review.md): a calmer quarter; my expectation that t
 - every rung so far is a volume method and calls direction like persistence. direction is the open problem.
 - every round's worst isps are wind surprises the target's own history can't see: with onshore wind 300 mw or more above its day-ahead forecast at the freeze, the mae is 11 %, 28 %, 37 % and 56 % higher than inside ±100 mw, rising every round (persistence in round 1, ar(1) after).
 - chart: replay/mae_by_round.png.
+
+**correction, 30 oct 2026.** the 2026q3 review says the linear rung and ar(1) are "within noise". tested over the three 2026 rounds, the linear rung leads by 0.35–0.58 mw of pinball, t 2.7–3.6 (docs/experiments/stability). small, under 2 %, and it doesn't change the ladder's result: the rung still can't be promoted on the round it entered. the review stands as written at the time.
