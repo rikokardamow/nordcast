@@ -49,15 +49,15 @@ def test_the_check_runs_with_the_standard_library_only(tmp_path):
         text=True,
         check=False,
     )
-    assert out.returncode == 1 and "::error::heartbeat written" in out.stdout
+    assert out.returncode == 1 and "problem: heartbeat written" in out.stdout
 
 
-def test_due_once_the_last_heartbeat_is_55_minutes_old(tmp_path):
+def test_due_once_the_last_heartbeat_is_5_minutes_old(tmp_path):
     path = tmp_path / "heartbeat.json"
     assert heartbeat.due(path, NOW)
     path.write_text(json.dumps(beat(NOW, NOW)))
-    assert not heartbeat.due(path, NOW + timedelta(minutes=54))
-    assert heartbeat.due(path, NOW + timedelta(minutes=55))
+    assert not heartbeat.due(path, NOW + timedelta(minutes=4))
+    assert heartbeat.due(path, NOW + timedelta(minutes=5))
 
 
 def test_on_time_counts_calls_whose_window_has_passed(db):

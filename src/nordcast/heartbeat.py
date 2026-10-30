@@ -1,15 +1,14 @@
-"""The Mac's heartbeat and the deadman that reads it.
+"""The record's health check, local to this Mac.
 
-jobs/heartbeat.py writes status/heartbeat.json and pushes it about hourly:
-when it was written, the last headline freeze, the last 24 h's on-time
-freeze rate and the newest pull of each archive feed. GitHub runs
-`python src/nordcast/heartbeat.py status/heartbeat.json`
-(.github/workflows/deadman.yml) on its own clock and fails, which emails
-me, when the Mac has gone quiet: no push for 75 min, or a heartbeat whose
-last freeze was more than 20 min old, or whose last mfrrRequest pull was
-more than 15 min old, when it was written.
+jobs/heartbeat.py writes status/heartbeat.json every 5 min: when it was
+written, the last headline freeze, the last 24 h's on-time freeze rate and the
+newest pull of each archive feed. `problems` says what's wrong: a last freeze
+more than 20 min old or a last mfrrRequest pull more than 15 min old when it
+was written. ops/run_jobs.sh logs them and raises a Mac notification. Nothing
+leaves the machine, so it can't report a Mac that is off or asleep.
 
-Standard library only, so the deadman needs no install.
+By hand, which also fails on a file over 75 min old:
+`python src/nordcast/heartbeat.py status/heartbeat.json`. Standard library only.
 """
 
 import json
@@ -24,7 +23,7 @@ MAX_AGE = timedelta(minutes=75)
 MAX_FREEZE_AGE = timedelta(minutes=20)
 MAX_PULL_AGE = timedelta(minutes=15)  # the archive pulls every 1-5 min
 WATCHED_FEED = "mfrr_request"  # every minute, and gone after 7 days
-PUSH_EVERY = timedelta(minutes=55)
+EVERY = timedelta(minutes=5)
 HORIZONS = (15, 30, 60)
 
 
@@ -98,15 +97,15 @@ def build(conn, now, archive):
 
 
 def due(path, now):
-    """True when the heartbeat on disk is missing or older than PUSH_EVERY."""
+    """True when the heartbeat on disk is missing or older than EVERY."""
     path = Path(path)
     if not path.exists():
         return True
-    return now - _parse(json.loads(path.read_text())["generated_at"]) >= PUSH_EVERY
+    return now - _parse(json.loads(path.read_text())["generated_at"]) >= EVERY
 
 
 def problems(beat, now):
-    """What the deadman fails on; empty when the Mac is alive and freezing."""
+    """What is wrong; empty when the record is freezing and archiving."""
     out = []
     written = _parse(beat.get("generated_at"))
     if written is None or now - written > MAX_AGE:
@@ -129,5 +128,5 @@ if __name__ == "__main__":
     found = problems(beat, datetime.now(UTC))
     print(json.dumps(beat, indent=2))
     for p in found:
-        print(f"::error::{p}")
+        print(f"problem: {p}")
     sys.exit(1 if found else 0)

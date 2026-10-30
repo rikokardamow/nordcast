@@ -49,3 +49,6 @@ data/models/
 
 # Calls and results the layers read, rebuilt by jobs/layer_calls.py.
 data/layers/
+
+# Local health check; not published.
+status/

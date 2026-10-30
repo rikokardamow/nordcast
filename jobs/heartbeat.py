@@ -1,12 +1,10 @@
-"""Write status/heartbeat.json and commit it, about hourly.
+"""Write status/heartbeat.json every 5 min and print what is wrong.
 
-Runs every minute from ops/run_jobs.sh and does nothing until the committed
-heartbeat is 55 min old, so a skipped minute never opens a gap the deadman
-(.github/workflows/deadman.yml, 75 min) would see. ops/run_jobs.sh pushes.
+Runs every minute from ops/run_jobs.sh and does nothing until the last one is
+5 min old. Local only: no commit, no push.
 """
 
 import json
-import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -26,10 +24,8 @@ def main(now=None):
         beat = heartbeat.build(conn, now, ARCHIVE)
     PATH.parent.mkdir(parents=True, exist_ok=True)
     PATH.write_text(json.dumps(beat, indent=2) + "\n")
-    subprocess.run(["git", "add", str(PATH)], check=True)
-    msg = f"Heartbeat {now:%Y-%m-%d %H:%M} UTC"
-    subprocess.run(["git", "commit", "-q", "-m", msg, "--", str(PATH)], check=True)
-    print(msg)
+    for problem in heartbeat.problems(beat, now):
+        print(f"ALARM {problem}")
     return beat
 
 

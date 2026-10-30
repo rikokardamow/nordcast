@@ -1,8 +1,9 @@
 #!/bin/zsh
 # Every minute: load what the archive pulled, freeze what's due, score
 # what's out. Each job does nothing when nothing is due, so running often is
-# safe. After 00:10 Copenhagen: the day's stamped file, pushed. Hourly: the
-# heartbeat, pushed (only when nothing unapproved is on main), and the backup to the private nordcast-backups repo.
+# safe. After 00:10 Copenhagen: the day's stamped file, pushed (only when
+# nothing unapproved is on main). Every 5 min: the local health check. Hourly:
+# the backup to the private nordcast-backups repo.
 set -u
 export PATH=/opt/homebrew/bin:/usr/bin:/bin
 cd "$(dirname "$0")/.."
@@ -15,7 +16,7 @@ stamp() { date -u +%FT%TZ; }
 push_own() {
   git fetch -q origin main 2>&1 || { echo "$(stamp) $1 push failed: fetch"; return; }
   local others
-  others=$(git log --format='%h %s' origin/main..main | grep -vE '^[0-9a-f]+ (Heartbeat [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:]{5} UTC|Stamp dk1-[0-9-]+(, dk1-[0-9-]+)*|Scorecard [0-9]{4}-[0-9]{2}-[0-9]{2})$')
+  others=$(git log --format='%h %s' origin/main..main | grep -vE '^[0-9a-f]+ (Stamp dk1-[0-9-]+(, dk1-[0-9-]+)*|Scorecard [0-9]{4}-[0-9]{2}-[0-9]{2})$')
   if [[ -n $others ]]; then
     echo "$(stamp) $1 push held: unapproved commits on main: ${others//$'\n'/; }"
   else
@@ -34,9 +35,11 @@ if [[ $(TZ=Europe/Copenhagen date +%H%M) -ge 0010 ]]; then
   fi
 fi
 
-# About hourly: status/heartbeat.json.
-if uv run --quiet python jobs/heartbeat.py | grep -q '^Heartbeat'; then
-  push_own heartbeat
+# Every 5 min: status/heartbeat.json; a stale record reaches the log and the screen.
+alarm=$(uv run --quiet python jobs/heartbeat.py | grep '^ALARM')
+if [[ -n $alarm ]]; then
+  echo "$(stamp) $alarm"
+  osascript -e 'display notification "Freezes or pulls have gone stale: see the jobs log" with title "nordcast"'
 fi
 
 # Minute 05 of each hour; launchd's start drift can skip one, the next hour covers it.
