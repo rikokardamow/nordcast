@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-10-30T20:01:09+00:00",
-  "last_freeze_at": "2026-10-29T22:10:07+00:00",
+  "generated_at": "2026-10-30T20:56:15+00:00",
+  "last_freeze_at": "2026-10-30T20:55:11+00:00",
   "on_time_24h": {
     "due": 288,
     "frozen": 27,
@@ -8,13 +8,13 @@
   },
   "challenger_rows_24h": 27,
   "archive_last_pull": {
-    "day_ahead_prices": "2026-10-29T21:45:03+00:00",
-    "forecasts_5min": "2026-10-29T22:10:27+00:00",
-    "harmonie": "2026-10-29T21:15:44+00:00",
-    "imbalance_price": "2026-10-30T20:01:00+00:00",
-    "mfrr_activation": "2026-10-29T22:10:27+00:00",
-    "mfrr_request": "2026-10-30T20:01:00+00:00",
-    "power_system_right_now": "2026-10-30T20:01:00+00:00",
-    "prodex_5min": "2026-10-30T20:01:00+00:00"
+    "day_ahead_prices": "2026-10-30T20:15:11+00:00",
+    "forecasts_5min": "2026-10-30T20:55:42+00:00",
+    "harmonie": "2026-10-30T20:15:11+00:00",
+    "imbalance_price": "2026-10-30T20:51:37+00:00",
+    "mfrr_activation": "2026-10-30T20:55:42+00:00",
+    "mfrr_request": "2026-10-30T20:52:40+00:00",
+    "power_system_right_now": "2026-10-30T20:55:42+00:00",
+    "prodex_5min": "2026-10-30T20:52:40+00:00"
   }
 }
