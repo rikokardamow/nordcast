@@ -1,0 +1,158 @@
+{
+  "DayAheadPrices.DayAheadPriceEUR": {
+    "comment": "The Day-Ahead prices indicate the balance between supply and demand.",
+    "dataType": "number",
+    "description": "Day-Ahead price for the price area in EUR.",
+    "unit": "EUR per MWh"
+  },
+  "DayAheadPrices.TimeUTC": {
+    "comment": "Please note that the _format_ shown in the example applies to data downloaded as JSON or fetched through the API. The format is slightly different when it is shown on screen or downloaded manually as CSV or XLSX. This is mainly due to readability and consideration for Excel users. **In preview (in the GUI)** all timestamps are shown as (display convention) YYYY-MM-DD hh:mmZ e.g. 2017-07-14 08:00Z. That is without the seconds. The Z will remind viewers that this is UTC. In **download (CSV and XLSX)** the date time are exported as YYYY-MM-DD hh:mm e.g. 2017-07-14 08:00. That is without the “T” and the “Z” and the seconds. Excel will recognize it as date-time. The user must remember the convention about time zones. In **download (JSON and API)** the datetime is exported as YYYY-MM-DDThh:mm:ss e.g. 2017-07-14T08:00:00. That is without the \"Z\".",
+    "dataType": "datetime",
+    "description": "A date and time shown in _UTC time zone_. It is the \"from\" timestamp for the period in which the values are valid. The dataset resolution sets the length of the interval.",
+    "unit": ""
+  },
+  "ElectricityProdex5MinRealtime.ExchangeGermany": {
+    "comment": "A positive exchange indicates import of electricity to Denmark, while a negative exchange indicates export of electricity from Denmark.",
+    "dataType": "number",
+    "description": "Power exchange to Germany from Price Area.",
+    "unit": "MW"
+  },
+  "ElectricityProdex5MinRealtime.ExchangeGreatBelt": {
+    "comment": "Positive values are import, while negative values are export.",
+    "dataType": "number",
+    "description": "Exchange of electricity over the Great Belt connection between DK1 and DK2.",
+    "unit": "MW"
+  },
+  "ElectricityProdex5MinRealtime.ExchangeGreatBritain": {
+    "comment": "A positive exchange indicates import of electricity to Denmark, while a negative exchange indicates export of electricity from Denmark.",
+    "dataType": "number",
+    "description": "Exchange to Great Britain.",
+    "unit": "MWh per hour"
+  },
+  "ElectricityProdex5MinRealtime.ExchangeNetherlands": {
+    "comment": "A positive exchange indicates import of electricity to Denmark, while a negative exchange indicates export of electricity from Denmark.",
+    "dataType": "number",
+    "description": "Exchange of electricity between Denmark and the Netherlands.",
+    "unit": "MW"
+  },
+  "ElectricityProdex5MinRealtime.ExchangeNorway": {
+    "comment": "A positive exchange indicates import of electricity to Denmark, while a negative exchange indicates export of electricity from Denmark.",
+    "dataType": "number",
+    "description": "Power exchange to Norway from Price Area.",
+    "unit": "MW"
+  },
+  "ElectricityProdex5MinRealtime.ExchangeSweden": {
+    "comment": "A positive exchange indicates import of electricity to Denmark, while a negative exchange indicates export of electricity from Denmark.",
+    "dataType": "number",
+    "description": "Power exchange to Sweden from Price Area.",
+    "unit": "MW"
+  },
+  "ElectricityProdex5MinRealtime.Minutes5UTC": {
+    "comment": "Please note that the _format_ shown in the example applies to data downloaded as JSON or fetched through the API. The format is slightly different when it is shown on screen or downloaded manually as CSV or XLSX. This is mainly due to readability and consideration for Excel users. **In preview (in the GUI)** all timestamps are shown as (display convention) YYYY-MM-DD hh:mmZ e.g. 2017-07-14 08:05Z. The Z will remind viewers that this is UTC. In **download (CSV and XLSX)** the datetime is exported as YYYY-MM-DD hh:mm e.g. 2017-07-14 08:05. That is without the “T” and the “Z” and the seconds. Excel will recognize it as date-time. The user must remember the convention about time zones. In **download (JSON and API)** the datetime is exported as YYYY-MM-DDThh:mm:ss e.g. 2017-07-14T08:05:00.",
+    "dataType": "datetime",
+    "description": "UTC timestamp at which the values are valid.",
+    "unit": ""
+  },
+  "ElectricityProdex5MinRealtime.OffshoreWindPower": {
+    "comment": "Includes both large offshore parks like Horns reef, and local wind turbines located offshore.",
+    "dataType": "number",
+    "description": "Electricity production from offshore wind power.",
+    "unit": "MW"
+  },
+  "ElectricityProdex5MinRealtime.OnshoreWindPower": {
+    "comment": "All wind generators that are not specifically registrered as off-shore wind generators.",
+    "dataType": "number",
+    "description": "Electricity production from onshore wind power.",
+    "unit": "MW"
+  },
+  "ElectricityProdex5MinRealtime.ProductionGe100MW": {
+    "comment": "Data based on energy measurements.",
+    "dataType": "number",
+    "description": "Production on plants with a capacity greater than or equal to 100MW. Data based on energy measurements.",
+    "unit": "MW"
+  },
+  "ElectricityProdex5MinRealtime.ProductionLt100MW": {
+    "comment": "-",
+    "dataType": "number",
+    "description": "Production on plants with a capacity lower than 100MW.",
+    "unit": "MW"
+  },
+  "ElectricityProdex5MinRealtime.SolarPower": {
+    "comment": "The estimated production is based on real-time measurements, occasionally containing small errors that are not corrected retroactively. Consequently, these estimates may deviate from actual production, such as instances of minimal nighttime solar panel output.",
+    "dataType": "number",
+    "description": "Electricity production from Solar power.",
+    "unit": "MW"
+  },
+  "Forecasts_5Min.Forecast1Hour": {
+    "comment": "The 1 hour forecast is released up to 15 minutes before the start of the forecast and might be updated until 1 minute before the forecast starts. Within this time frame up to 3 updates can take place. Solar power forecasts are not updated between 6pm and 6am, hence there are no 1 hour forecasts for solar power between 7pm and 7am.",
+    "dataType": "number",
+    "description": "The forecast valid 1 hour ahead in time. Updated close to 1 hour before, e.g. at 12.00 local Danish time a value is available for timestamp 13.00 (5 minutes DK).",
+    "unit": "MW"
+  },
+  "Forecasts_5Min.ForecastDayAhead": {
+    "comment": "-",
+    "dataType": "number",
+    "description": "Forecast for the next day is updated close to 18:00 local Danish time with values for the 5 minute timestamps the following day.",
+    "unit": "MW"
+  },
+  "Forecasts_5Min.Minutes5UTC": {
+    "comment": "Please note that the _format_ shown in the example applies to data downloaded as JSON or fetched through the API. The format is slightly different when it is shown on screen or downloaded manually as CSV or XLSX. This is mainly due to readability and consideration for Excel users. **In preview (in the GUI)** all timestamps are shown as (display convention) YYYY-MM-DD hh:mmZ e.g. 2017-07-14 08:05Z. The Z will remind viewers that this is UTC. In **download (CSV and XLSX)** the datetime is exported as YYYY-MM-DD hh:mm e.g. 2017-07-14 08:05. That is without the “T” and the “Z” and the seconds. Excel will recognize it as date-time. The user must remember the convention about time zones. In **download (JSON and API)** the datetime is exported as YYYY-MM-DDThh:mm:ss e.g. 2017-07-14T08:05:00.",
+    "dataType": "datetime",
+    "description": "UTC timestamp at which the values are valid.",
+    "unit": ""
+  },
+  "ImbalancePrice.DominatingDirection": {
+    "comment": "Before March 4th, 2026 dominating direction was determined by mFRR demand.",
+    "dataType": "integer",
+    "description": "Before March 19th, 2025 dominating direction equal dominating direction from pricing module. <br />Valid from March 19th, 2025: <br />Dominating direction is determined by mFRR demand. 1 for upregulation, 0 for no regulation and -1 for downregulation.",
+    "unit": ""
+  },
+  "ImbalancePrice.ImbalancePriceEUR": {
+    "comment": "If null, the price is temporarily suspended due to a pricing error. Price will be publish the following working day.",
+    "dataType": "number",
+    "description": "Before March 19th, 2025 imbalance price equal imbalance price from pricing module. <br />Valid from March 19th, 2025: The imbalance price is based on the dominating direction: <br /> Up: max of aFRR component or mFRR price <br /> None: Value of avoided activation, spot price <br /> Down: min of aFRR component or mFRR price",
+    "unit": "EUR per MWh"
+  },
+  "ImbalancePrice.SatisfiedDemand": {
+    "comment": "Before March 4th, 2026 This column represented Balancing Demand, hence mFRR demand in the BZ.",
+    "dataType": "number",
+    "description": "The total volume of mFRR activated to cover the balancing need in a bidding zone. Balancing demand show mFRR demand in the bidding zone. <br />A positive sign indicates mFRR upregulation. <br />A negative sign indicates mFRR downregulation.",
+    "unit": "MW"
+  },
+  "ImbalancePrice.TimeUTC": {
+    "comment": "Please note that the _format_ shown in the example applies to data downloaded as JSON or fetched through the API. The format is slightly different when it is shown on screen or downloaded manually as CSV or XLSX. This is mainly due to readability and consideration for Excel users. **In preview (in the GUI)** all timestamps are shown as (display convention) YYYY-MM-DD hh:mmZ e.g. 2017-07-14 08:00Z. That is without the seconds. The Z will remind viewers that this is UTC. In **download (CSV and XLSX)** the date time are exported as YYYY-MM-DD hh:mm e.g. 2017-07-14 08:00. That is without the “T” and the “Z” and the seconds. Excel will recognize it as date-time. The user must remember the convention about time zones. In **download (JSON and API)** the datetime is exported as YYYY-MM-DDThh:mm:ss e.g. 2017-07-14T08:00:00. That is without the \"Z\".",
+    "dataType": "datetime",
+    "description": "A date and time shown in _UTC time zone_. It is the \"from\" timestamp for the period in which the values are valid. The dataset resolution sets the length of the interval.",
+    "unit": ""
+  },
+  "ImbalancePrice.aFRRDownMW": {
+    "comment": "This component is part of the aFRR VWA down",
+    "dataType": "number",
+    "description": "This shows the total activated downregulation volume per quarter.",
+    "unit": "MWh"
+  },
+  "ImbalancePrice.aFRRUpMW": {
+    "comment": "This component is part of the aFRR VWA down",
+    "dataType": "number",
+    "description": "This shows the total activated upregulation volume per quarter.",
+    "unit": "MWh"
+  },
+  "MfrrEnergyActivationMarket.TimeUTC": {
+    "comment": "Please note that the _format_ shown in the example applies to data downloaded as JSON or fetched through the API. The format is slightly different when it is shown on screen or downloaded manually as CSV or XLSX. This is mainly due to readability and consideration for Excel users. **In preview (in the GUI)** all timestamps are shown as (display convention) YYYY-MM-DD hh:mmZ e.g. 2017-07-14 08:00Z. That is without the seconds. The Z will remind viewers that this is UTC. In **download (CSV and XLSX)** the date time are exported as YYYY-MM-DD hh:mm e.g. 2017-07-14 08:00. That is without the “T” and the “Z” and the seconds. Excel will recognize it as date-time. The user must remember the convention about time zones. In **download (JSON and API)** the datetime is exported as YYYY-MM-DDThh:mm:ss e.g. 2017-07-14T08:00:00. That is without the \"Z\".",
+    "dataType": "datetime",
+    "description": "A date and time shown in _UTC time zone_. It is the \"from\" timestamp for the period in which the values are valid. The dataset resolution sets the length of the interval.",
+    "unit": ""
+  },
+  "MfrrEnergyActivationMarket.TotalmFRRDownMW": {
+    "comment": "",
+    "dataType": "integer",
+    "description": "Total requested mFRR down, the aggregated volume of activated scheduled activation (SA) down and direct activation (DA) down.",
+    "unit": "MW"
+  },
+  "MfrrEnergyActivationMarket.TotalmFRRUpMW": {
+    "comment": "",
+    "dataType": "integer",
+    "description": "Total requested mFRR up, the aggregated volume of activated mFRR scheduled activation (SA) up and direct activation (DA) up.",
+    "unit": "MW"
+  }
+}

@@ -34,7 +34,7 @@ if [[ $(TZ=Europe/Copenhagen date +%H%M) -ge 0010 ]]; then
   fi
 fi
 
-# About hourly: status/heartbeat.json for the deadman on GitHub.
+# About hourly: status/heartbeat.json.
 if uv run --quiet python jobs/heartbeat.py | grep -q '^Heartbeat'; then
   push_own heartbeat
 fi
@@ -42,4 +42,10 @@ fi
 # Minute 05 of each hour; launchd's start drift can skip one, the next hour covers it.
 if [[ $(date -u +%M) == 05 ]]; then
   uv run --quiet python -c 'from nordcast import backup; backup.run("hourly")'
+  # Energinet's column definitions against the pin; a redefinition reaches the
+  # log and the screen. No output and exit 0 when unchanged or unreachable.
+  if ! uv run --quiet pytest -q tests/test_eds_definitions.py >/dev/null 2>&1; then
+    echo "$(stamp) EDS definitions changed: see tests/test_eds_definitions.py"
+    osascript -e 'display notification "Energinet changed a column definition" with title "nordcast"'
+  fi
 fi
