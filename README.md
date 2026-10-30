@@ -50,7 +50,7 @@ uv run python jobs/score.py                 # score whatever has an outcome
 uv run pytest
 ```
 
-`ops/install.sh` sets up three launchd agents: an archive job every minute, the forecasting jobs every minute, and the database stack at login. The two charts above are rebuilt by the scripts in `notebooks/`; the command is in each docstring.
+`ops/install.sh` sets up four launchd agents: an archive job every minute, the forecasting jobs every minute, the database stack at login, and a watchdog that reloads any of them launchd has lost. The two charts above are rebuilt by the scripts in `notebooks/`; the command is in each docstring.
 
 ## Where things are
 

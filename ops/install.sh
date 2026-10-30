@@ -5,6 +5,8 @@ repo=$(cd "$(dirname "$0")/.." && pwd)
 logs="$HOME/Library/Logs/nordcast"
 agents="$HOME/Library/LaunchAgents"
 mkdir -p "$logs" "$agents"
+# so it can't reload an agent between the bootout and bootstrap below
+launchctl bootout "gui/$(id -u)/nordcast.watchdog" 2>/dev/null || true
 for src in "$repo"/ops/launchd/*.plist; do
   label=$(basename "$src" .plist)
   dest="$agents/$label.plist"
