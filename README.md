@@ -19,12 +19,12 @@ Updated by the scoring job after each day's forecasts are timestamped. The recor
 <!-- scorecard -->
 | horizon | method | calls | direction hit | pinball vs persistence (90 % CI) | Brier vs persistence | Brier vs climatology | coverage q10–q90 | on-time | live since |
 |---|---|---|---|---|---|---|---|---|---|
-| 15 min | headline | 17 | 23.5 % | +0.0 MW (+0.0 to +0.0) | +0.000 (+0.000 to +0.000) | -0.910 (-1.332 to -0.488) | 94.1 % | 8.5 % | 28 Oct 2026 |
-| 15 min | lightgbm_v1 (challenger) | 14 | 42.9 % | +6.3 MW (+3.0 to +9.6) | +0.388 (+0.123 to +0.653) | -0.522 (-1.067 to +0.023) | 85.7 % | 7.0 % | 29 Oct 2026 |
-| 30 min | headline | 16 | 31.2 % | +0.0 MW (+0.0 to +0.0) | +0.000 (+0.000 to +0.000) | -1.129 (-1.420 to -0.838) | 100.0 % | 8.0 % | 28 Oct 2026 |
-| 30 min | lightgbm_v1 (challenger) | 13 | 38.5 % | +8.6 MW (+3.1 to +14.1) | +0.664 (+0.202 to +1.126) | -0.465 (-1.011 to +0.081) | 84.6 % | 6.5 % | 29 Oct 2026 |
-| 60 min | headline | 15 | 46.7 % | +0.0 MW (+0.0 to +0.0) | +0.000 (+0.000 to +0.000) | -0.731 (-1.133 to -0.330) | 100.0 % | 7.4 % | 28 Oct 2026 |
-| 60 min | lightgbm_v1 (challenger) | 12 | 16.7 % | +2.8 MW (-2.4 to +8.0) | +0.065 (+0.030 to +0.101) | -0.666 (-1.103 to -0.229) | 91.7 % | 5.9 % | 29 Oct 2026 |
+| 15 min | headline | 20 | 25.0 % | +0.0 MW (+0.0 to +0.0) | +0.000 (+0.000 to +0.000) | -0.964 (-1.332 to -0.597) | 95.0 % | 9.7 % | 28 Oct 2026 |
+| 15 min | lightgbm_v1 (challenger) | 17 | 35.3 % | +5.2 MW (+2.2 to +8.2) | +0.414 (+0.149 to +0.678) | -0.551 (-1.067 to -0.034) | 88.2 % | 8.2 % | 29 Oct 2026 |
+| 30 min | headline | 20 | 35.0 % | +0.0 MW (+0.0 to +0.0) | +0.000 (+0.000 to +0.000) | -0.865 (-1.213 to -0.516) | 100.0 % | 9.6 % | 28 Oct 2026 |
+| 30 min | lightgbm_v1 (challenger) | 17 | 29.4 % | +6.0 MW (+2.9 to +9.1) | +0.359 (+0.157 to +0.561) | -0.505 (-1.011 to +0.000) | 88.2 % | 8.2 % | 29 Oct 2026 |
+| 60 min | headline | 19 | 52.6 % | +0.0 MW (+0.0 to +0.0) | +0.000 (+0.000 to +0.000) | -0.632 (-1.133 to -0.131) | 100.0 % | 9.0 % | 28 Oct 2026 |
+| 60 min | lightgbm_v1 (challenger) | 16 | 25.0 % | +5.1 MW (+1.1 to +9.1) | +0.013 (-0.034 to +0.060) | -0.619 (-1.103 to -0.135) | 93.8 % | 7.6 % | 29 Oct 2026 |
 <!-- /scorecard -->
 
 Calls is the number of scored forecasts at that horizon. Direction hit is how often the forecast named the right direction (up, down, or neither). The pinball column compares the volume forecast with plain persistence, in MW, with a 90% bootstrap interval; positive is better, and for persistence itself it is zero by definition. Coverage is how often the actual value fell inside the published 10th to 90th percentile range, where 80% is the target. On-time is the share of forecasts due since the start that were frozen inside their window.
