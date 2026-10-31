@@ -1,5 +1,7 @@
 # Experiment: is any model's edge significant and stable? (30 Oct 2026)
 
+**In plain English.** Is any model's lead real, and does it last? The model's lead on forecast size looks real and steady. Its lead on direction is smaller and fading. This is a rehearsal on past data, and the live test is the one that counts.
+
 The replay and the model cards compared average losses. This asks the two further questions a forecast evaluation owes its reader: is the difference distinguishable from noise, and did it hold over time or come from one stretch? It runs on the replay's 2026 rounds, 273 days, out of sample, with LightGBM v1 refit before each round. The test is Diebold–Mariano on daily mean loss differences with Newey–West errors over 7 lags ([run.py](run.py), results in [results.csv](results.csv)). This is research on estimated vintages. It changes nothing in the record or the pre-registration.
 
 ![Cumulative gain of LightGBM v1 against AR(1) on volume and against climatology on direction](stability.png)

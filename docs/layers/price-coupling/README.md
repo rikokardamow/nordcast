@@ -1,5 +1,7 @@
 # Layer: DK1 price coupling (#31, DK1 part): when DK1's day-ahead price splits from its neighbours, and whether the flows follow
 
+**In plain English.** When a border has spare room, prices on each side tend to match. When it fills up, they split. This layer looks at how often western Denmark's next-day price differs from its neighbours' and whether power follows the price. It adds nothing to the forecast record.
+
 **Status:** analysis built, uncommitted, 29 Oct 2026. **Nothing is added to the record:** neighbour prices are cached outside it (`data/history/DayAheadPricesAll/`, gitignored), because adding areas means changing nordcast's DK1-only fetch and live loader, and the test below gives no reason to. The risks were written down before any code: [RISK.md](RISK.md). The test: [backtest.py](backtest.py), results in [coupling.csv](coupling.csv) and [backtest.csv](backtest.csv).
 
 ![DK1 price coupling](price_coupling.png)

@@ -1,5 +1,7 @@
 # Experiment: can the direction call beat hour-of-day climatology by more? (29 Oct 2026)
 
+**In plain English.** Can two cheap ideas widen the model's narrow lead on the up-or-down forecast? No, though blending it with the usual hour-of-day pattern never hurt, so it is a useful safeguard.
+
 **Question.** [direction-bar](../direction-bar/README.md) found lightgbm_v1's direction ahead of hour-of-day climatology by only 0.01–0.03 Brier at 15–30 min, and behind it at 60 min in 2026q3. Do two cheap ideas widen that?
 
 **Answer: no, but one is a useful guard.** Feeding climatology to LightGBM as features (`stack`) doesn't help and is slightly worse in 2026q2–q3. Blending v1 with climatology (`blend`, weight chosen on data before each round) never hurt: it picked w = 1 (v1 itself) in 2026q1–q2 and leaned toward climatology in 2026q3, where it beat v1 and turned v1's 60-minute loss to climatology into a draw. Research only; lightgbm_v1 and the pre-registration are untouched.

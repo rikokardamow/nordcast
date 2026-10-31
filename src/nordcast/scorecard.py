@@ -118,6 +118,41 @@ def _brier(s):
     return "–" if s is None else f"{s[0]:+.3f} ({s[1]:+.3f} to {s[2]:+.3f})"
 
 
+def _gain(s):
+    return "–" if s is None else f"{s[0]:+.1f} MW"
+
+
+def _name(method):
+    return "official forecast" if method == "headline" else method
+
+
+def plain_markdown(table):
+    """The short table: the same numbers, in everyday words."""
+    head = (
+        "| looking ahead | forecast | scored | right direction | gain on persistence"
+        " | inside its range (target 80 %) | on time |\n"
+        "|---|---|---|---|---|---|---|\n"
+    )
+    if not table:
+        return head + "| – | no scored calls yet | – | – | – | – | – |\n"
+    return head + "".join(
+        f"| {r['horizon']} min | {_name(r['method'])} | {r['calls']:,} |"
+        f" {_pct(r['direction_hit'])} | {_gain(r['skill'])} |"
+        f" {_pct(r['coverage'])} | {_pct(r['on_time'])} |\n"
+        for r in table
+    )
+
+
+def readme_block(table):
+    """The short table, with the full pre-registered one a click away."""
+    return (
+        plain_markdown(table)
+        + "\n<details><summary>Full table, with the pre-registered statistics</summary>\n\n"
+        + markdown(table)
+        + "\n</details>\n"
+    )
+
+
 def markdown(table):
     head = (
         "| horizon | method | calls | direction hit | pinball vs persistence"

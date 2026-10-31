@@ -1,5 +1,7 @@
 # Layer: DK1 residual load (#32): demand − wind − solar, measured every 5 minutes
 
+**In plain English.** Residual load is the demand left after wind and solar, which other plants and imports must cover. This layer measures it every 5 minutes and checks it against Energinet's later settled figures. It doesn't produce a forecast of its own.
+
 **Status:** built and tested, uncommitted, 29 Oct 2026. The series is loaded into nordcast's local record (backfilled from 1 Mar 2025 as estimated vintages; live pulls add exact ones). Nothing about the frozen calls, the challenger or the pre-registration changed. The risks were written down before any code: [RISK.md](RISK.md). The test that decided the alpha question: [backtest.py](backtest.py), results in [backtest.csv](backtest.csv).
 
 ![DK1 residual load](residual_load.png)

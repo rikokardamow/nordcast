@@ -15,6 +15,7 @@ from pathlib import Path
 import matplotlib
 
 matplotlib.use("Agg")
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -25,9 +26,11 @@ bt = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(bt)
 
 NAVY, BLUE, GREY, BAND = "#0F2A4A", "#1F5FBF", "#7D8996", "#DCE3EC"
+NAMES = {"DK1": "western Denmark", "DE": "Germany", "DK2": "eastern Denmark",
+         "NO2": "southern Norway", "SE3": "central Sweden"}  # fmt: skip
 COLORS = {"DK1": "black", "DE": NAVY, "DK2": GREY, "NO2": BLUE, "SE3": "#2A9D8F"}
 plt.rcParams.update({"axes.spines.top": False, "axes.spines.right": False,
-                     "axes.grid": True, "grid.color": BAND})  # fmt: skip
+                     "axes.grid": True, "grid.color": BAND, "axes.axisbelow": True})  # fmt: skip
 
 raw = pd.concat(pd.read_parquet(p) for p in sorted(bt.CACHE.glob("*.parquet")))
 raw["t"] = (
@@ -42,23 +45,27 @@ fig, (top, bottom) = plt.subplots(
 )
 for area in bt.AREAS:
     top.plot(week.index, week[area], color=COLORS[area], lw=1.6 if area == "DK1" else 0.9,
-             label=area, drawstyle="steps-post", zorder=3 if area == "DK1" else 2)  # fmt: skip
+             label=NAMES[area], drawstyle="steps-post", zorder=3 if area == "DK1" else 2)  # fmt: skip
 top.set_ylabel("EUR/MWh")
-top.set_title("Day-ahead prices, DK1 and neighbours, 20–26 Oct 2026", loc="left")
+top.set_title("Next-day power prices, western Denmark and neighbours, 20–26 Oct 2026", loc="left")
+top.xaxis.set_major_formatter(mdates.DateFormatter("%-d %b", tz="Europe/Copenhagen"))
+low, high = top.get_ylim()
+top.set_ylim(low, high * 1.12)  # room for the legend
 top.legend(loc="upper left", ncol=5, frameon=False, fontsize=8)
 
 x = np.arange(len(check))
-bars = (("coupled", "coupled (same price)", BLUE),
-        ("at_limit_when_split", "at observed limit, when split", GREY),
-        ("flow_toward_dearer_when_split", "flow toward dearer side, when split", NAVY))  # fmt: skip
+bars = (("coupled", "same price", BLUE),
+        ("at_limit_when_split", "border at its recent maximum, when prices differ", GREY),
+        ("flow_toward_dearer_when_split", "power flowing to the dearer side, when prices differ", NAVY))  # fmt: skip
 for i, (col, label, color) in enumerate(bars):
     bottom.bar(
         x + (i - 1) * 0.27, 100 * check[col], width=0.27, color=color, label=label
     )
-bottom.set_xticks(x, check.border)
-bottom.set_ylabel("% of ISPs")
-bottom.set_ylim(0, 100)
-bottom.set_title("1 Oct 2025 – 28 Oct 2026", loc="left", fontsize=10)
+bottom.set_xticks(x, [NAMES[b.split("-")[1]] for b in check.border])
+bottom.set_ylabel("% of quarter-hours")
+bottom.set_ylim(0, 118)
+bottom.set_yticks(range(0, 101, 20))
+bottom.set_title("Each border with western Denmark, 1 Oct 2025 – 28 Oct 2026", loc="left", fontsize=10)
 bottom.legend(loc="upper left", frameon=False, fontsize=8, ncol=3)
 fig.text(0.01, -0.02, "Source: Energinet (CC BY 4.0), DayAheadPrices and ElectricityProdex5MinRealtime. "
          "No NL or GB price on Energi Data Service. Observed limit: within 2 % of the border's 28-day largest flow.",

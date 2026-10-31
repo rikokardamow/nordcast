@@ -1,5 +1,7 @@
 # Check: are the nominal lags late enough? (29 Oct 2026)
 
+**In plain English.** Past data is stamped with an assumed time of publication, and that assumption must err late. This check finds it does for every measured feed but one: the forecast target sometimes appeared later than assumed. The sample is small, so it needs re-measuring.
+
 **Question.** Backfilled history is stamped `published_at = NOMINAL_LAG(isp)`, and the challenger reads live data through the same lags (`challenger.nominal`). A lag must err late (notes/backfill.md: check it against the live pulls "and correct the constant"). Are they late enough?
 
 **Answer: every measured lag is, except the target's.** `SatisfiedDemand` (and `DominatingDirection`, the same row) usually prints ~7 min after its ISP ends, but in 3 of 16 watched ISPs it printed ~22 min after, past the nominal 15. Small sample, one day; re-measure after a week before acting.

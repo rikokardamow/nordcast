@@ -15,6 +15,7 @@ from pathlib import Path
 import matplotlib
 
 matplotlib.use("Agg")
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import pandas as pd
 import psycopg
@@ -24,7 +25,7 @@ from _common import DB_URL
 
 NAVY, BLUE, GREY, BAND = "#0F2A4A", "#1F5FBF", "#7D8996", "#DCE3EC"
 plt.rcParams.update({"axes.spines.top": False, "axes.spines.right": False,
-                     "axes.grid": True, "grid.color": BAND})  # fmt: skip
+                     "axes.grid": True, "grid.color": BAND, "axes.axisbelow": True})  # fmt: skip
 RL, SD = "energinet.dk1.residual_load_mw", "energinet.dk1.satisfied_demand"
 
 
@@ -57,12 +58,13 @@ fig, (top, bottom) = plt.subplots(
 )
 top.axhline(0, color=GREY, lw=0.8)
 top.plot(
-    week.index, week, color=NAVY, lw=1.2, label="residual load (thermal + net import)"
+    week.index, week, color=NAVY, lw=1.2, label="residual load: demand − wind − solar"
 )
 top.plot(sd["2026-10-20":"2026-10-26"].index, sd["2026-10-20":"2026-10-26"], color=BLUE, lw=0.8,
-         alpha=0.7, label="SatisfiedDemand (imbalance target)")  # fmt: skip
-top.set_ylabel("MW, ISP mean")
-top.set_title("DK1 residual load = demand − wind − solar, 20–26 Oct 2026", loc="left")
+         alpha=0.7, label="balancing energy activated (the forecast target)")  # fmt: skip
+top.set_ylabel("MW, 15-minute mean")
+top.set_title("Western Denmark: demand left after wind and solar, 20–26 Oct 2026", loc="left")
+top.xaxis.set_major_formatter(mdates.DateFormatter("%-d %b", tz="Europe/Copenhagen"))
 top.legend(loc="upper left", frameon=False, fontsize=9)
 
 summary = []
@@ -81,12 +83,12 @@ for label, months, color in (
         f"{label}: mean {s.mean():.0f} MW, peak hour {peak:02d}:00, min {prof.min():.0f} MW at {int(prof.idxmin()):02d}:00"
     )
 bottom.axhline(0, color=GREY, lw=0.8)
-bottom.set_xlabel("hour, Copenhagen")
-bottom.set_ylabel("MW, mean")
+bottom.set_xlabel("hour of the day, Copenhagen")
+bottom.set_ylabel("MW, average")
 bottom.set_xticks(range(0, 24, 3))
 bottom.legend(loc="upper left", frameon=False, fontsize=9)
 fig.text(0.01, -0.02, "Source: Energinet (CC BY 4.0), ElectricityProdex5MinRealtime, first prints. "
-         "Thermal = plants <100 MW + ≥100 MW; net import = six exchanges, + = import.",
+         "Measured as thermal plants plus net imports across six borders.",
          fontsize=8, color=GREY)  # fmt: skip
 fig.tight_layout()
 fig.savefig(Path(__file__).with_name("residual_load.png"), dpi=150, bbox_inches="tight")

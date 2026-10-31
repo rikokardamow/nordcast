@@ -1,5 +1,7 @@
 # Experiment: layers #31–#33 as LightGBM inputs (29 Oct 2026)
 
+**In plain English.** Could the machine-learning model get more from the residual-load, border-flow and price-spread data than a simple model did? No. This was research only and changed nothing in the live forecast.
+
 **Question.** The three DK1 layers (residual load, interconnector flows, day-ahead spreads) each failed a linear test. Does LightGBM, which can use them non-linearly, find what the linear model didn't?
 
 **Answer: no.** Research only; lightgbm_v1 (the live challenger) and `notes/preregistration.md` are untouched.
