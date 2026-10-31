@@ -52,3 +52,7 @@ data/layers/
 
 # Local health check; not published.
 status/
+
+# OpenTimestamps upgrade leftovers, and an empty stray repo in the session directory.
+*.ots.bak
+/nordcast/
