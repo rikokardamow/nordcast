@@ -1,5 +1,7 @@
 # Experiment: is persistence a real bar for the direction call? (29 Oct 2026)
 
+**In plain English.** Is persistence a fair test for the up-or-down forecast? No: it is too easy on this measure. Comparing with the usual pattern for that hour of day is a real test, and the model only narrowly passes it at 15 and 30 minutes, and not at 60.
+
 **Question.** `notes/preregistration.md` tests lightgbm_v1's direction by its Brier score against persistence. Persistence's direction "probabilities" are one-hot (1 on its call), so does that test say anything?
 
 **Answer: no. Against persistence the Brier condition is a formality; against direction climatology it's a real test, which v1 passes narrowly at 15 and 30 min and not at 60 min.** Research only; nothing in the record or the pre-registration changed.

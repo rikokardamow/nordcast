@@ -1,5 +1,7 @@
 # Layer: DK1 interconnector flows (#33): six borders, every 5 minutes, and how often each sits at its limit
 
+**In plain English.** Western Denmark trades power with its neighbours over six borders. This layer records how much flows across each one, and how often each runs at its recent maximum. In the first test the flows did not clearly improve the forecast.
+
 **Status:** built and tested, uncommitted, 29 Oct 2026. Six series are loaded into nordcast's local record (backfilled from 1 Mar 2025 as estimated vintages; live pulls add exact ones). Nothing about the frozen calls, the challenger or the pre-registration changed. The risks were written down before any code: [RISK.md](RISK.md). The test: [backtest.py](backtest.py), results in [backtest.csv](backtest.csv).
 
 ![DK1 flows by border](interconnectors.png)

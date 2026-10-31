@@ -14,6 +14,7 @@ from pathlib import Path
 import matplotlib
 
 matplotlib.use("Agg")
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import psycopg
@@ -33,9 +34,9 @@ COLORS = {
     "dk2": GREY,
 }
 NAMES = {"de": "Germany", "nl": "Netherlands", "gb": "Great Britain", "no": "Norway",
-         "se": "Sweden", "dk2": "DK2 (Great Belt)"}  # fmt: skip
+         "se": "Sweden", "dk2": "Eastern Denmark"}  # fmt: skip
 plt.rcParams.update({"axes.spines.top": False, "axes.spines.right": False,
-                     "axes.grid": True, "grid.color": BAND})  # fmt: skip
+                     "axes.grid": True, "grid.color": BAND, "axes.axisbelow": True})  # fmt: skip
 
 with psycopg.connect(bt.DB_URL) as conn:
     frame = bt.isp_frame(conn)
@@ -65,8 +66,11 @@ top.plot(
     drawstyle="steps-post",
 )
 top.axhline(0, color=GREY, lw=0.8)
-top.set_ylabel("MW, ISP mean (+ = import)")
-top.set_title("DK1 physical flow by border, 20–26 Oct 2026", loc="left")
+top.set_ylabel("MW, 15-minute mean (+ = import)")
+top.set_title("Western Denmark: power flow across each border, 20–26 Oct 2026", loc="left")
+top.xaxis.set_major_formatter(mdates.DateFormatter("%-d %b", tz="Europe/Copenhagen"))
+low, high = top.get_ylim()
+top.set_ylim(low, high * 1.3)  # room for the legend
 top.legend(loc="upper left", ncol=4, frameon=False, fontsize=8)
 
 shares = []
@@ -91,9 +95,9 @@ bottom.bar(
     label="at export limit",
 )
 bottom.set_xticks(x, [NAMES[b] for b in bt.BORDERS])
-bottom.set_ylabel("% of ISPs")
+bottom.set_ylabel("% of quarter-hours")
 bottom.set_title(
-    "Time at its observed limit, 1 Oct 2025 – 28 Oct 2026", loc="left", fontsize=10
+    "Share of time each border ran at its recent maximum, 1 Oct 2025 – 28 Oct 2026", loc="left", fontsize=10
 )
 bottom.legend(loc="upper right", frameon=False, fontsize=8)
 fig.text(0.01, -0.02, "Source: Energinet (CC BY 4.0), ElectricityProdex5MinRealtime, first prints. "

@@ -48,6 +48,14 @@ def test_replace_swaps_only_the_marked_block():
         scorecard.replace("no markers", "x")
 
 
+def test_readme_block_keeps_the_full_table_behind_the_short_one():
+    block = scorecard.readme_block([])
+    assert block.index("no scored calls yet") < block.index("<details>")
+    assert "Brier vs climatology" in block
+    readme = f"a\n{scorecard.START}\nold\n{scorecard.END}\nb\n"
+    assert "</details>" in scorecard.replace(readme, block)
+
+
 def test_brier_against_persistence_and_climatology():
     rows = []
     for k in range(8):
