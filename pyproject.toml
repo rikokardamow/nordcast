@@ -44,3 +44,15 @@ reports = [
     "pandas>=3.1.0",
     "pyyaml>=6.0",
 ]
+
+[tool.ruff]
+# Vendored from the shared paper_style core, kept byte-identical so it can be re-synced;
+# docs/FIGURES.md is that core's specification, with its own example code.
+extend-exclude = [
+    "src/nordcast/paper_style.py",
+    "jobs/export_paper_figures.py",
+    "tests/test_paper_style.py",
+    "tests/test_paper_style_guard.py",
+    "tests/test_export_paper_figures.py",
+    "docs/FIGURES.md",
+]
