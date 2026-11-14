@@ -4,6 +4,8 @@
 
 ![DK1 residual load](residual_load.png)
 
+*Figure: DK1 residual load peaks at 17:00 in winter and 21:00 in summer. Source: Energinet, Energi Data Service (ElectricityProdex5MinRealtime, first prints); CC BY 4.0; as of 2026-10-29.*
+
 ## In one paragraph
 
 Residual load is the part of demand that wind and solar don't cover, so thermal plants and the interconnectors have to. Energinet publishes no real-time DK1 consumption, and a consumption derived from the 5-minute feed is wrong in summer: it misses part of the rooftop solar and runs up to ~700 MW low at midday (1–7 Aug 2026). Residual load doesn't have that problem. By energy balance it equals **thermal production + net import**, and solar that the feed can't see drops out of both sides. Measured that way from `ElectricityProdex5MinRealtime`, it matches Energinet's own hourly settlement with **correlation 1.000** in both check weeks (mean −2 MW in October, +50 MW in August under the old settlement method). It is published every 5 minutes, about 5 minutes behind; settlement comes a day or more later.

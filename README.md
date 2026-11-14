@@ -10,6 +10,8 @@ The forecast on the record today is persistence, the assumption that the next qu
 
 ![DK1 system imbalance and wind forecast error, 20 to 26 October 2026](notebooks/01_look.png)
 
+*Figure: Up-regulation was needed in 34% of quarter-hours and down-regulation in 36% in DK1, 20 to 26 October 2026. Source: Energinet, Energi Data Service (ImbalancePrice, PowerSystemRightNow, Forecasts_5Min); CC BY 4.0; as of 2026-10-31.*
+
 The upper panel is the forecast target, the balancing energy Energinet activated in each quarter-hour. The lower panel is the main thing a model can see coming: wind generation arriving above or below the day-ahead forecast.
 
 ## Scorecard
@@ -35,6 +37,8 @@ The methods were rehearsed on 2025 and 2026 data in quarterly rounds, each addin
 
 ![Replay: mean absolute error of the 15-minute call, by round](replay/mae_by_round.png)
 
+*Figure: Adding mean reversion to persistence cut the 15-minute error by 17% to 21% in each replay round both ran. Source: Energinet, Energi Data Service (replay/scorecard.csv, h = 15 min); CC BY 4.0; as of 2026-09-30.*
+
 The full log of each round, with the configuration and the review, is in `notes/replay-log.md`.
 
 ## Running it
@@ -59,6 +63,7 @@ uv run pytest
 - `forecasts/frozen/` holds every frozen forecast with its hash and timestamp proof.
 - `notes/` is the working record: the plan, the pre-registration, the data register, model cards and the incident log. `docs/README.md` explains how they fit together.
 - `replay/` has the rehearsal rounds, `tests/` the tests, `supabase/migrations/` the schema.
+- `notebooks/` has the notebooks behind the charts; [notebooks/README.md](notebooks/README.md) shows the model, position, P&L and risk charts.
 
 Raw feeds are archived every minute to a private repository, `nordcast-archive`, so that first prints are never lost, and the database is backed up hourly to `nordcast-backups`.
 

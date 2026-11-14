@@ -4,6 +4,8 @@
 
 ![DK1 flows by border](interconnectors.png)
 
+*Figure: At least one DK1 border sat at its observed limit in 71% of ISPs over the year. Source: Energinet, Energi Data Service (ElectricityProdex5MinRealtime); CC BY 4.0; as of 2026-10-28.*
+
 ## In one paragraph
 
 DK1 sits between Germany, the Netherlands (COBRA), Great Britain (Viking Link), Norway (Skagerrak), Sweden (Konti-Skan) and DK2 (the Great Belt). Energinet's 5-minute feed carries the physical flow on each, and each one matches Energinet's hourly settlement for that border at correlation 1.000 (0.999 for the Great Belt), with + = import on all six. Capacities aren't published openly, so the layer measures each border against its own observed limit: in **71 %** of ISPs since 1 Oct 2025, at least one border was at its limit. Sweden sat at its import limit 29 % of the time, Great Britain at its export limit 19 %, the Netherlands at one limit or the other 28 %; Germany and the Great Belt, the links that flex, were at a limit under 3 % of the time.

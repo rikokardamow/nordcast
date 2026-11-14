@@ -27,6 +27,19 @@ The idea is simple. A forecast is only worth trusting if you can prove when it w
 
 `replay/` holds four quarterly rounds, Q4 2025 to Q3 2026. Each round has a plan (which methods run), a scorecard, diagnostics and a review, and each adds one method to the ladder. The method with the lowest mean pinball loss across the three horizons wins the round and becomes the model for the next. The replay uses estimated data vintages, so it flatters every method a little and is kept apart from the live record.
 
+For each round, `jobs/replay_charts.py` draws three charts of the target from the first prints published before that round. The latest round's hourly profile:
+
+![Mean DK1 SatisfiedDemand by Copenhagen hour and by weekday, first prints before round 2026q3](../replay/2026q3/analysis/profiles.png)
+
+*Figure: The target averages −97 MW at 15:00 and −18 MW at 21:00 by Copenhagen hour. Source: Energinet, Energi Data Service (observation table, first prints before the round); CC BY 4.0; as of 2026-07-01.*
+
+The other charts, by round:
+
+- 2025q4: [autocorrelation](../replay/2025q4/analysis/acf.png), [distribution](../replay/2025q4/analysis/distribution.png), [profiles](../replay/2025q4/analysis/profiles.png); notes in [analysis.md](../replay/2025q4/analysis/analysis.md)
+- 2026q1: [autocorrelation](../replay/2026q1/analysis/acf.png), [distribution](../replay/2026q1/analysis/distribution.png), [profiles](../replay/2026q1/analysis/profiles.png); notes in [analysis.md](../replay/2026q1/analysis/analysis.md)
+- 2026q2: [autocorrelation](../replay/2026q2/analysis/acf.png), [distribution](../replay/2026q2/analysis/distribution.png), [profiles](../replay/2026q2/analysis/profiles.png); notes in [analysis.md](../replay/2026q2/analysis/analysis.md)
+- 2026q3: [autocorrelation](../replay/2026q3/analysis/acf.png), [distribution](../replay/2026q3/analysis/distribution.png); notes in [analysis.md](../replay/2026q3/analysis/analysis.md)
+
 ## The layers
 
 `docs/layers/` holds side studies built on the record, each with a README and a risk note written before the code. They are numbered after the sister project's catalogue (for example "Layer #32"). Each ends by saying whether it adds forecasting value; most do not.

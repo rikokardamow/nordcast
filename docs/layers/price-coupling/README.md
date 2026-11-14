@@ -4,6 +4,8 @@
 
 ![DK1 price coupling](price_coupling.png)
 
+*Figure: DK1 shared one day-ahead price with DE in 38% of ISPs, and with NO2 and SE3 almost never. Source: Energinet, Energi Data Service (DayAheadPrices, ElectricityProdex5MinRealtime; coupling.csv); CC BY 4.0; as of 2026-10-28.*
+
 ## In one paragraph
 
 Energi Data Service publishes 15-minute day-ahead prices for DK1 and four of its six neighbours: Germany, DK2, Norway (NO2) and Sweden (SE3); the Netherlands and Great Britain aren't there. Since 1 Oct 2025, DK1 has had the same price as Germany in **38 %** of ISPs and as DK2 in 20 %, but almost never as Norway (0.4 %) or Sweden (0.8 %); all four matched in 0.3 %. Splits line up with layer #33's flows: when DK1 and Sweden split, the Konti-Skan link was at its observed limit 33 % of the time (3 % when coupled), and for Norway 20 % (4 %). When prices split, the physical flow ran toward the dearer side 90 % of the time on Norway, 85 % on Sweden, 75 % on DK2 and 70 % on Germany; the rest is intraday and balancing flow that the day-ahead auction doesn't set.

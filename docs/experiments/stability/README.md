@@ -4,6 +4,8 @@ The replay and the model cards compared average losses. This asks the two furthe
 
 ![Cumulative gain of LightGBM v1 against AR(1) on volume and against climatology on direction](stability.png)
 
+*Figure: LightGBM v1 keeps gaining on AR(1) in volume, but its direction gain on hour-of-day climatology is fading. Source: Energinet, Energi Data Service (data/training, data/layers; results.csv); CC BY 4.0; as of 2026-09-30.*
+
 **Volume: LightGBM's lead is real and steady.** It beats AR(1) by 1.1 to 1.3 MW of pinball a day, about 3 %, with t between 4.7 and 7.0 and no trend over the nine months. Both beat persistence by 9 to 12 MW, with t above 26. This bodes well for the pre-registered volume conditions, though the live test on exact vintages is the one that counts.
 
 **Direction: the lead over climatology is real at 15 and 30 minutes, and fading.** The mean gain in Brier is 0.022 at 15 minutes (t 6.8) and 0.013 at 30 (t 4.7), but both trend down significantly (t −3.1 and −2.1). At 15 minutes the fitted gain falls from about 0.036 in January to about 0.008 in September, and the path visibly flattens around the 4 Mar 2026 definition change. At 60 minutes there is no gain at all (t −0.3), and it ends the period below where it started. So the direction condition added by Amendment 1 could fail in the live window. That is what the amendment is for, and nothing here is a reason to change it.
