@@ -1,0 +1,8 @@
+% Written by paper_style.save; edit the figure code, not this file.
+% Needs \usepackage{graphicx,amssymb,textcomp} in the preamble.
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{03_calibration.pdf}
+  \caption{At 15 min the up and down probabilities between 0.2 and 0.7 overstate the observed frequency by 7 percentage points on average. LightGBM v1 hold-out model; ten equal-width probability bins per class; the diagonal is perfect calibration; the top bins hold few ISPs. Estimated vintages, not the record. Units: probability. Source: Energinet, Energi Data Service; data/training/h15.parquet, models/holdout-lightgbm-v1-h15.pkl; CC BY 4.0; as of 2026-10-27.}
+  \label{fig:03-calibration}
+\end{figure}
