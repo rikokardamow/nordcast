@@ -62,7 +62,7 @@ Every gain is under 1.5 MW on an error of 105–129 MW (about 1 % at best), and 
 - `supabase/migrations/20261029200000_residual_load.sql` (applied to the local database)
 - `src/nordcast/sources/energinet.py`: the `energinet.dk1.residual_load_mw` entry
 - `tests/test_residual_load.py`
-- `docs/layers/residual-load/`: this README, RISK.md, backtest.py, backtest.csv, chart.py, residual_load.png
+- `docs/layers/residual-load/`: this README, RISK.md, backtest.py, backtest.csv, chart.py, residual_load.png, residual_load.pdf, residual_load.tex
 
 ## Not done
 

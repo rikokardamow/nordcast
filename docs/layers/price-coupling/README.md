@@ -56,7 +56,7 @@ MAE is 105–129 MW. No round improves clearly, and 2026q3 is worse at every hor
 
 ## Files (uncommitted)
 
-- `docs/layers/price-coupling/`: this README, RISK.md, backtest.py, coupling.csv, backtest.csv, chart.py, price_coupling.png
+- `docs/layers/price-coupling/`: this README, RISK.md, backtest.py, coupling.csv, backtest.csv, chart.py, price_coupling.png, price_coupling.pdf, price_coupling.tex
 - Cache (gitignored, rebuilt by backtest.py): `data/history/DayAheadPricesAll/<yyyy-mm>.parquet`
 
 ## Not done

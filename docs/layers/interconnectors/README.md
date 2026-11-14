@@ -61,7 +61,7 @@ MAE is 105–129 MW throughout. On top of residual load the flows add nothing: e
 - `supabase/migrations/20261029210000_interconnectors.sql` (applied to the local database)
 - `src/nordcast/sources/energinet.py`: six `energinet.dk1.flow_*_mw` entries
 - `tests/test_interconnectors.py`
-- `docs/layers/interconnectors/`: this README, RISK.md, backtest.py, backtest.csv, chart.py, interconnectors.png
+- `docs/layers/interconnectors/`: this README, RISK.md, backtest.py, backtest.csv, chart.py, interconnectors.png, interconnectors.pdf, interconnectors.tex
 
 ## Not done
 
