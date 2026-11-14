@@ -28,16 +28,14 @@ cells = [
     code(
         """from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from nordcast import paper_style as ps
 from nordcast import positions
+from nordcast.figure_utils import ATTRIBUTION, LICENCE, label_offsets, name_label
 
 D = Path("../data/layers")
-NAVY, BLUE, GREY, BAND = "#0F2A4A", "#1F5FBF", "#7D8996", "#DCE3EC"
-plt.rcParams.update({"figure.figsize": (10, 4), "axes.spines.top": False,
-                     "axes.spines.right": False, "axes.grid": True, "grid.color": BAND})
 SEED, DRAWS = 20261029, 10_000
 
 
@@ -87,25 +85,54 @@ pd.Series(d, name="ar(1) − persistence, positioned hit rate").round(4)"""
     ),
     md("## A week of positions, 15 min ahead"),
     code(
-        """f = frames[15]
+        """import matplotlib.dates as mdates
+
+f = frames[15]
 wk = f.loc["2026-09-07":"2026-09-13"].copy()
 wk.index = wk.index.tz_convert("Europe/Copenhagen")
-fig, (top, bottom) = plt.subplots(2, 1, figsize=(11, 6), sharex=True, gridspec_kw={"height_ratios": [3, 2]})
-top.fill_between(wk.index, wk.q10, wk.q90, color=BAND, step="post", label="ar(1) q10–q90")
-top.plot(wk.index, wk.point, color=BLUE, lw=0.9, drawstyle="steps-post", label="ar(1) call (q50)")
-top.plot(wk.index, wk.y, color=NAVY, lw=1.0, drawstyle="steps-post", label="first print")
+rate_wk, n_wk = hit_rate(wk.forecast_mw, wk.y)
+NAVY, BLUE, GREY = ps.PALETTE[0], ps.PALETTE[1], ps.PALETTE[2]
+fig, axes = ps.figure(2, 1, height_ratios=[3, 2])
+top, bottom = axes[0][0], axes[1][0]
+top.fill_between(wk.index, wk.q10, wk.q90, color=ps.TOKENS["border"], step="post")
+top.plot(wk.index, wk.point, color=BLUE, lw=0.8, drawstyle="steps-post")
+top.plot(wk.index, wk.y, color=NAVY, lw=0.9, drawstyle="steps-post")
 top.axhline(0, color=GREY, lw=0.6)
-top.set_ylabel("MW (+ up-regulation)")
-top.set_title("DK1 SatisfiedDemand and the 15-min call, 7–13 Sep 2026 (replay, not the record)", loc="left")
-top.legend(loc="upper left", frameon=False, ncol=3)
-bottom.plot(wk.index, wk.forecast_mw, color=BLUE, lw=1.0, drawstyle="steps-post", label="ar(1) position")
-bottom.plot(wk.index, wk.persistence_mw, color=GREY, lw=0.9, ls="--", drawstyle="steps-post", label="persistence position")
+bottom.plot(wk.index, wk.forecast_mw, color=BLUE, lw=0.9, drawstyle="steps-post")
+bottom.plot(wk.index, wk.persistence_mw, color=GREY, lw=0.8, ls="--", drawstyle="steps-post")
 bottom.axhline(0, color=GREY, lw=0.6)
-bottom.set_ylabel("MW, ± 10")
-bottom.legend(loc="upper left", frameon=False, ncol=2)
-fig.text(0.01, 0.005, "Estimated vintages. Data: Energinet, Energi Data Service. Copenhagen time.", fontsize=8, color=GREY)
-fig.tight_layout()
-fig.savefig("10_position.png", dpi=150, bbox_inches="tight")"""
+bottom.xaxis.set_major_locator(mdates.DayLocator(tz="Europe/Copenhagen"))
+bottom.xaxis.set_major_formatter(mdates.DateFormatter("%-d %b", tz="Europe/Copenhagen"))
+ps.frame(
+    fig,
+    title=(
+        f"In 7-13 Sep 2026 the ar(1) position matched the first print's direction in "
+        f"{rate_wk:.0%} of {n_wk} positioned quarter-hours (replay, not the record)"
+    ),
+    subtitle=(
+        "(a) DK1 SatisfiedDemand (first print) and the ar(1) 15-minute call with its q10-q90 band. "
+        "(b) The ar(1) position and the persistence control, limited to 10 MW either way. "
+        "Estimated vintages; Copenhagen time."
+    ),
+    units="MW",
+    cadence="quarter-hourly",
+    source=f"{ATTRIBUTION} (calls from jobs/layer_calls.py)",
+    licence=LICENCE,
+    asof="2026-09-30",  # the replay window ends here
+    xlabel="Date, Copenhagen time (September 2026)",
+    ylabel=["SatisfiedDemand and call (MW, + = up)", "Position (MW, + = long)"],
+    margins=(0.65, 1.25, 0.2, 0.5),
+)
+for ax, items in (
+    (top, [(wk.y, "First print", NAVY), (wk.point, "ar(1) call (q50)", BLUE), (wk.q90, "q10-q90 band", ps.TOKENS["text_muted"])]),
+    (bottom, [(wk.forecast_mw, "ar(1) position", BLUE), (wk.persistence_mw, "Persistence position", GREY)]),
+):
+    ends = [(s.dropna().index[-1], float(s.dropna().iloc[-1])) for s, _, _ in items]
+    dys = label_offsets(ax, [y for _, y in ends], gap_pt=10)
+    for (s, text, colour), (x, y), dy in zip(items, ends, dys, strict=True):
+        name_label(ax, x, y, text, color=colour, dy=dy)
+ps.show(fig)
+ps.save(fig, "10_position", formats=("pdf", "png", "tex"))"""
     ),
     md(
         "## The energy-analyst skill\n\n"

@@ -14,22 +14,15 @@ import sys
 from datetime import timedelta
 from pathlib import Path
 
-import matplotlib
 import numpy as np
 import pandas as pd
 import psycopg
 from _common import DB_URL
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-from statsmodels.tsa.stattools import adfuller, pacf
+from replay_charts import draw, first_prints, stats
+from statsmodels.tsa.stattools import adfuller
 
 from nordcast import features, freeze, model, replay
 from nordcast.baselines import TARGET
-
-NAVY, BLUE, GREY, BAND = "#0F2A4A", "#1F5FBF", "#7D8996", "#DCE3EC"
-plt.rcParams.update({"figure.figsize": (8, 3.2), "axes.spines.top": False,
-                     "axes.spines.right": False, "axes.grid": True, "grid.color": BAND})  # fmt: skip
 
 name = sys.argv[1]
 out = Path("replay") / name
@@ -38,16 +31,6 @@ if not plan.exists():
     sys.exit(f"{plan} missing: write the plan before the round runs")
 methods = re.findall(r"^- method: (\S+)", plan.read_text(), re.MULTILINE)
 start, end = replay.ROUNDS[name]
-
-
-def first_prints(conn, series_id, frm, to):
-    rows = conn.execute(
-        "select distinct on (observed_for) observed_for, value from observation"
-        " where series_id = %s and observed_for >= %s and observed_for < %s"
-        " order by observed_for, published_at, observation_id",
-        (series_id, frm, to),
-    ).fetchall()
-    return pd.Series({t: float(v) for t, v in rows}).sort_index()
 
 
 # 1. analyse: the target before the round only
@@ -59,35 +42,11 @@ notes = [
     f"# {name} – analysis\n",
     f"target first prints {y.index.min():%d %b %Y} – {y.index.max():%d %b %Y} utc, {len(y)} isps, before the round only.\n",
 ]
-acf = [float(y.autocorr(k)) for k in range(1, 97)]
-pac = pacf(y.to_numpy(), nlags=16)
-fig, ax = plt.subplots(1, 2)
-ax[0].bar(range(1, 97), acf, color=NAVY, width=0.8)
-ax[0].set_title("acf, lags 1-96 isps", loc="left")
-ax[1].bar(range(1, 17), pac[1:], color=BLUE, width=0.8)
-ax[1].set_title("pacf, lags 1-16", loc="left")
-fig.tight_layout()
-fig.savefig(out / "analysis" / "acf.png", dpi=120)
-plt.close(fig)
-hour = yl.groupby(yl.index.hour).agg(["mean", "std"])
-week = yl.groupby(yl.index.weekday).mean()
-fig, ax = plt.subplots(1, 2)
-ax[0].plot(hour.index, hour["mean"], color=NAVY)
-ax[0].fill_between(
-    hour.index, hour["mean"] - hour["std"], hour["mean"] + hour["std"], color=BAND
-)
-ax[0].set_title("by copenhagen hour, mean ± sd", loc="left")
-ax[1].bar(week.index, week, color=BLUE)
-ax[1].set_title("by weekday (0 = mon), mean", loc="left")
-fig.tight_layout()
-fig.savefig(out / "analysis" / "profiles.png", dpi=120)
-plt.close(fig)
-fig, ax = plt.subplots()
-ax.hist(y, bins=80, color=NAVY)
-ax.set_title("distribution (mw)", loc="left")
-fig.tight_layout()
-fig.savefig(out / "analysis" / "distribution.png", dpi=120)
-plt.close(fig)
+st = stats(y)
+acf, pac, hour = st["acf"], st["pac"], st["hour"]
+draw(
+    name, y, st, start, out / "analysis"
+)  # acf, profiles, distribution (jobs/replay_charts.py)
 adf = adfuller(y.to_numpy(), maxlag=96, autolag=None)
 notes += [
     f"- acf: lag 1 {acf[0]:.2f}, lag 4 {acf[3]:.2f}, lag 8 {acf[7]:.2f}, lag 96 (a day) {acf[95]:.2f}.",

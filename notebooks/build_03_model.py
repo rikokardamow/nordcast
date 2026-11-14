@@ -24,16 +24,14 @@ cells = [
 import pickle
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 from nordcast import model
+from nordcast import paper_style as ps
+from nordcast.figure_utils import ATTRIBUTION, LICENCE, name_label
 
 D, M = Path("../data/training"), Path("../data/models")
-NAVY, BLUE, GREY, BAND = "#0F2A4A", "#1F5FBF", "#7D8996", "#DCE3EC"
-plt.rcParams.update({"figure.figsize": (10, 4), "axes.spines.top": False,
-                     "axes.spines.right": False, "axes.grid": True, "grid.color": BAND})
 manifest = json.loads((M / "manifest-lightgbm-v1.json").read_text())
 rows, preds = [], {}
 for h in (15, 30, 60):
@@ -89,16 +87,41 @@ skill.round(3)  # skill vs persistence: 0.10 = 10 % lower loss"""
     md("## Direction calibration, 15 min"),
     code(
         """val, pred, _ = preds[15]
-fig, ax = plt.subplots(figsize=(5.5, 4.5))
-for cls, colour in (("up", BLUE), ("down", NAVY), ("none", GREY)):
+fig, axes = ps.figure(width=ps.COLUMN)
+ax = axes[0][0]
+curves, over = [], []
+for cls, colour, ls in (("up", ps.PALETTE[1], "-"), ("down", ps.PALETTE[0], "--"), ("none", ps.PALETTE[2], ":")):
     p = pred[f"p_{cls}"]
     bins = pd.cut(p, np.linspace(0, 1, 11), include_lowest=True)
     obs = (val.y_dir == cls).groupby(bins, observed=True).mean()
     mid = p.groupby(bins, observed=True).mean()
-    ax.plot(mid, obs, "o-", color=colour, label=cls, ms=4)
-ax.plot([0, 1], [0, 1], color=BAND, lw=1)
-ax.set_xlabel("predicted probability"); ax.set_ylabel("observed frequency")
-ax.legend(frameon=False)"""
+    if cls != "none":
+        mask = (mid >= 0.2) & (mid <= 0.7)
+        over += list((mid - obs)[mask])
+    ax.plot(mid, obs, marker="o", ls=ls, color=colour, ms=3)
+    curves.append((cls, colour, float(mid.iloc[-1]), float(obs.iloc[-1])))
+ax.plot([0, 1], [0, 1], color=ps.TOKENS["text_muted"], lw=0.7)
+ax.set_xlim(0, 1)
+ax.set_ylim(0, 1)
+ps.frame(
+    fig,
+    title=(
+        f"At 15 min the up and down probabilities between 0.2 and 0.7 overstate the observed "
+        f"frequency by {100 * np.mean(over):.0f} percentage points on average"
+    ),
+    subtitle="LightGBM v1 hold-out model; ten equal-width probability bins per class; the diagonal is perfect calibration; the top bins hold few ISPs. Estimated vintages, not the record.",
+    units="probability",
+    source=f"{ATTRIBUTION}; data/training/h15.parquet, models/holdout-lightgbm-v1-h15.pkl",
+    licence=LICENCE,
+    asof=f"{val.target.max():%Y-%m-%d}",
+    xlabel="Predicted probability (0 to 1)",
+    ylabel="Observed frequency (0 to 1)",
+    margins=(0.6, 0.55, 0.2, 0.5),
+)
+for cls, colour, x_end, y_end in curves:
+    name_label(ax, x_end, y_end, cls, color=colour)
+ps.show(fig)
+ps.save(fig, "03_calibration", formats=("pdf", "png", "tex"))"""
     ),
     md("## What the 15-minute volume model leans on"),
     code(
