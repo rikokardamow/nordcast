@@ -20,19 +20,17 @@ import importlib.util
 import json
 from pathlib import Path
 
-import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from scipy import stats
 
+from nordcast import paper_style as ps
+from nordcast.figure_utils import ATTRIBUTION, LICENCE, label_offsets
+
 HERE = Path(__file__).parent
 LAGS = 7
 SETTINGS_CHOSEN_FROM = pd.Timestamp("2026-08-10")
-NAVY, BLUE, GREY, RED = "#0F2A4A", "#1F5FBF", "#7D8996", "#C0392B"
 
 
 def _load(name, path):
@@ -138,26 +136,48 @@ def main():
             print(out[-1], flush=True)
     pd.DataFrame(out).to_csv(HERE / "results.csv", index=False, float_format="%.4f")
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4.6))
-    for h, colour, ls in ((15, NAVY, "-"), (30, BLUE, "-"), (60, GREY, "--")):
-        d = paths[(h, "pinball", "v1", "ar1")]
-        axes[0].plot(d.index, d.cumsum(), color=colour, ls=ls, lw=1.3, label=f"{h} min")
-        d = paths[(h, "brier", "v1", "climatology")]
-        axes[1].plot(d.index, d.cumsum(), color=colour, ls=ls, lw=1.3, label=f"{h} min")
-    axes[0].set_title("Volume: LightGBM v1 keeps gaining on AR(1)", loc="left")
-    axes[0].set_ylabel("cumulative daily pinball gain, MW")
-    axes[1].set_title(
-        "Direction: its gain on hour-of-day climatology is fading", loc="left"
+    fig, axes = ps.figure(2, 1)
+    ends = ([], [])
+    for h, colour, ls in (
+        (15, ps.PALETTE[0], "-"),
+        (30, ps.PALETTE[1], "-"),
+        (60, ps.PALETTE[2], "--"),
+    ):
+        for k, key in enumerate(
+            (("pinball", "v1", "ar1"), ("brier", "v1", "climatology"))
+        ):
+            d = paths[(h, *key)]
+            cum = d.cumsum()
+            axes[k][0].plot(d.index, cum, color=colour, ls=ls, lw=1.1)
+            ends[k].append((d.index[-1], float(cum.iloc[-1]), f"{h} min", colour))
+    ps.frame(
+        fig,
+        title=(
+            "LightGBM v1 keeps gaining on AR(1) in volume, but its direction gain on "
+            "hour-of-day climatology is fading"
+        ),
+        subtitle=(
+            "(a) Cumulative daily pinball gain of LightGBM v1 over AR(1). (b) Cumulative daily "
+            "Brier gain of LightGBM v1 over hour-of-day climatology. A rising line means "
+            "LightGBM is gaining. Replay on estimated vintages, 1 Jan - 30 Sep 2026, not the record."
+        ),
+        units=["MW", "Brier score"],
+        cadence="daily",
+        source=f"{ATTRIBUTION} (data/training, data/layers; results.csv)",
+        licence=LICENCE,
+        asof="2026-09-30",  # the replay's last day
+        xlabel="Date, Copenhagen day (2026)",
+        ylabel=["Cumulative pinball gain (MW)", "Cumulative Brier gain (Brier score)"],
     )
-    axes[1].set_ylabel("cumulative daily Brier gain")
-    for ax in axes:
-        ax.axhline(0, color=GREY, lw=0.6)
-        ax.spines[["top", "right"]].set_visible(False)
-        ax.legend(frameon=False)
-        ax.tick_params(axis="x", rotation=30)
-    fig.text(0.01, 0.005, "A rising line means LightGBM is gaining. Replay on estimated vintages, 1 Jan - 30 Sep 2026, not the record. Data: Energinet, Energi Data Service.", fontsize=8, color=GREY)  # fmt: skip
-    fig.tight_layout(rect=(0, 0.03, 1, 1))
-    fig.savefig(HERE / "stability.png", dpi=150)
+    for ax, items in zip((axes[0][0], axes[1][0]), ends, strict=True):
+        ax.axhline(0, color=ps.PALETTE[2], lw=0.6)
+        dys = label_offsets(ax, [e[1] for e in items], gap_pt=9)
+        for (x, y, name, colour), dy in zip(items, dys, strict=True):
+            ps.end_label(
+                ax, x, y, name, f"{y:.1f}".replace("-", ps.MINUS), color=colour, dy=dy
+            )
+    ps.date_axis(axes[1][0])
+    ps.save(fig, HERE / "stability", formats=("pdf", "png", "tex"))
 
 
 if __name__ == "__main__":

@@ -29,27 +29,17 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import duckdb
-import matplotlib.pyplot as plt
 import pandas as pd
 import psycopg
+
+from nordcast import paper_style as ps
+from nordcast.figure_utils import ATTRIBUTION, LICENCE, label_offsets, name_label
 
 URL = os.environ.get(
     "NORDCAST_DATABASE_URL", "postgresql://postgres:postgres@127.0.0.1:44332/postgres"
 )
 CPH = ZoneInfo("Europe/Copenhagen")
 START, END = datetime(2026, 10, 20, tzinfo=CPH), datetime(2026, 10, 27, tzinfo=CPH)
-
-# Chart colours from energy-forecasting's design tokens (light mode).
-NAVY, BLUE, GREY, BAND = "#0F2A4A", "#1F5FBF", "#7D8996", "#DCE3EC"
-plt.rcParams.update(
-    {
-        "figure.figsize": (10, 4),
-        "axes.spines.top": False,
-        "axes.spines.right": False,
-        "axes.grid": True,
-        "grid.color": BAND,
-    }
-)
 
 SERIES = [
     "satisfied_demand",
@@ -98,25 +88,7 @@ df = pd.DataFrame(frames).tz_convert(CPH)
 df.describe().round(1)"""
     ),
     code(
-        '''import itertools
-
-import matplotlib.dates as mdates
-
-TEXT, MUTED = "#0B1F3A", "#5B6878"
-plt.rcParams.update(
-    {
-        "font.family": "sans-serif",
-        "font.sans-serif": ["Helvetica Neue", "Helvetica", "Arial", "DejaVu Sans"],
-        "axes.edgecolor": BAND,
-        "axes.labelcolor": MUTED,
-        "axes.grid.axis": "y",
-        "grid.linewidth": 0.5,
-        "xtick.color": MUTED,
-        "ytick.color": MUTED,
-        "text.color": TEXT,
-        "font.size": 9,
-    }
-)
+        """import matplotlib.dates as mdates
 
 q = df.resample("15min").mean()  # the target is settled per quarter-hour
 target = q.satisfied_demand
@@ -127,99 +99,51 @@ on_err = q.wind_onshore_mw - q.wind_onshore_fc_da_mw
 off_err = q.wind_offshore_mw - q.wind_offshore_fc_da_mw
 off_adj = off_err - off_err.mean()
 
-
-def end_labels(ax, items, gap_frac=0.11):
-    """Label each series at its right edge, nudged apart so none overlap."""
-    lo, hi = ax.get_ylim()
-    gap = (hi - lo) * gap_frac
-    ys = [float(s.dropna().iloc[-1]) for s, _ in items]
-    order = sorted(range(len(ys)), key=lambda i: ys[i])
-    placed = list(ys)
-    for a, b in itertools.pairwise(order):
-        if placed[b] - placed[a] < gap:
-            placed[b] = placed[a] + gap
-    for (s, text), y in zip(items, placed, strict=True):
-        ax.annotate(
-            text,
-            (END, y),
-            xytext=(6, 0),
-            textcoords="offset points",
-            va="center",
-            fontsize=8.5,
-            color=TEXT,
-            annotation_clip=False,
-        )
-
-
-fig, (top, bottom) = plt.subplots(
-    2,
-    1,
-    figsize=(10, 6.2),
-    sharex=True,
-    gridspec_kw={"height_ratios": [3, 2], "hspace": 0.25},
-)
-fig.subplots_adjust(left=0.06, right=0.8, top=0.86, bottom=0.1)
-fig.text(
-    0.01,
-    0.97,
-    "DK1 system imbalance and wind forecast error, 20 to 26 October 2026",
-    ha="left",
-    va="top",
-    fontsize=12,
-    fontweight="bold",
-    color=TEXT,
-)
-fig.text(
-    0.01,
-    0.925,
-    f"MW per quarter-hour. Up-regulation was needed in {up / n:.0%} of "
-    f"quarter-hours, down-regulation in {down / n:.0%}.",
-    ha="left",
-    va="top",
-    fontsize=9.5,
-    color=MUTED,
-)
-
-top.plot(target.index, target, color=NAVY, lw=1.0)
-top.plot(afrr.index, afrr, color=BLUE, lw=0.8)
+NAVY, BLUE, GREY = ps.PALETTE[0], ps.PALETTE[1], ps.PALETTE[2]
+fig, axes = ps.figure(2, 1, height_ratios=[3, 2])
+top, bottom = axes[0][0], axes[1][0]
+top.plot(target.index, target, color=NAVY, lw=0.8)
+top.plot(afrr.index, afrr, color=BLUE, lw=0.7)
 top.axhline(0, color=GREY, lw=0.5)
-top.set_ylabel("MW, positive = up-regulation")
-top.set_xlim(START, END)
-end_labels(
-    top,
-    [
-        (target, "balancing energy activated\\n(the forecast target)"),
-        (afrr, "automatic reserve (aFRR)"),
-    ],
-)
-
-bottom.plot(on_err.index, on_err, color=NAVY, lw=0.9)
-bottom.plot(off_adj.index, off_adj, color=GREY, lw=0.9)
+bottom.plot(on_err.index, on_err, color=NAVY, lw=0.8)
+bottom.plot(off_adj.index, off_adj, color=GREY, lw=0.8)
 bottom.axhline(0, color=GREY, lw=0.5)
-bottom.set_ylabel("MW, actual minus forecast")
-bottom.set_xlim(START, END)
-end_labels(
-    bottom,
-    [
-        (on_err, "onshore wind"),
-        (off_adj, f"offshore wind, less its\\nweekly mean of {off_err.mean():+.0f} MW"),
-    ],
-)
-
 bottom.xaxis.set_major_locator(mdates.DayLocator(tz=CPH))
 bottom.xaxis.set_major_formatter(mdates.DateFormatter("%-d %b", tz=CPH))
 for ax in (top, bottom):
     ax.set_xlim(START, END)
-    ax.tick_params(length=0)
-fig.text(
-    0.01,
-    0.015,
-    "Source: Energinet, Energi Data Service (ImbalancePrice, PowerSystemRightNow, "
-    f"Forecasts_5Min), CC BY 4.0. Copenhagen time. Retrieved {datetime.now(CPH):%-d %b %Y}.",
-    fontsize=8,
-    color=MUTED,
+ps.frame(
+    fig,
+    title=(
+        f"Up-regulation was needed in {up / n:.0%} of quarter-hours and down-regulation in "
+        f"{down / n:.0%} in DK1, 20 to 26 October 2026"
+    ),
+    subtitle=(
+        "(a) Balancing energy Energinet activated to cover the system imbalance (the forecast "
+        "target, positive = up-regulation), with the automatic reserve (aFRR). (b) Wind "
+        "production minus Energinet's day-ahead forecast, onshore and offshore apart; offshore "
+        f"runs a level above its forecast and is shown less its weekly mean of {off_err.mean():+.0f} MW. "
+        "Quarter-hour means, Copenhagen time."
+    ),
+    units="MW",
+    cadence="quarter-hourly",
+    source=f"{ATTRIBUTION} (ImbalancePrice, PowerSystemRightNow, Forecasts_5Min)",
+    licence=LICENCE,
+    asof="2026-10-31",  # the newest vintage in the database when drawn
+    xlabel="Date, Copenhagen time (2026)",
+    ylabel=["Activated balancing energy (MW, + = up)", "Actual minus forecast (MW)"],
+    margins=(0.65, 1.25, 0.2, 0.5),
 )
-fig.savefig("01_look.png", dpi=150)'''
+for ax, items in (
+    (top, [(target, "Balancing energy\\nactivated (target)", NAVY), (afrr, "aFRR", BLUE)]),
+    (bottom, [(on_err, "Onshore wind", NAVY), (off_adj, "Offshore wind,\\nless weekly mean", GREY)]),
+):
+    ends = [(s.dropna().index[-1], float(s.dropna().iloc[-1])) for s, _, _ in items]
+    dys = label_offsets(ax, [y for _, y in ends], gap_pt=16)
+    for (s, text, colour), (x, y), dy in zip(items, ends, dys, strict=True):
+        name_label(ax, x, y, text, color=colour, dy=dy)
+ps.show(fig)
+ps.save(fig, "01_look", formats=("pdf", "png", "tex"))"""
     ),
     md(
         "Lower wind than forecast should need up-regulation: the correlation over "

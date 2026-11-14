@@ -31,23 +31,14 @@ cells = [
     code(
         """from pathlib import Path
 
-import matplotlib.pyplot as plt
 import pandas as pd
 import yaml
 
+from nordcast import paper_style as ps
 from nordcast import pnl, positions, risk
+from nordcast.figure_utils import ATTRIBUTION, LICENCE, label_offsets, name_label
 
 D = Path("../data/layers")
-NAVY, BLUE, GREY, BAND = "#0F2A4A", "#1F5FBF", "#7D8996", "#DCE3EC"
-plt.rcParams.update(
-    {
-        "figure.figsize": (10, 4),
-        "axes.spines.top": False,
-        "axes.spines.right": False,
-        "axes.grid": True,
-        "grid.color": BAND,
-    }
-)
 SCEN = yaml.safe_load(Path("../notes/scenarios.yaml").read_text())
 CPH = "Europe/Copenhagen"
 
@@ -90,22 +81,49 @@ t[t.q == 0.01].set_index("model")[["exceptions", "expected"]]"""
         """p = pnl_daily["persistence"]
 v1, v5, hs = (vars_["persistence"][k] for k in (("garch-evt", 0.01), ("garch-evt", 0.05), ("historical simulation", 0.01)))
 x = pd.to_datetime(p.index)
-fig, ax = plt.subplots(figsize=(11, 4.8))
-ax.bar(x, p / 1000, color=[BLUE if v >= 0 else NAVY for v in p], width=1.0, alpha=0.6, label="daily net P&L")
-ax.plot(x, -v5 / 1000, color=GREY, lw=1.0, label="5 % VaR, garch-evt")
-ax.plot(x, -v1 / 1000, color=NAVY, lw=1.2, label="1 % VaR, garch-evt")
-ax.plot(x, -hs / 1000, color=GREY, lw=1.0, ls="--", label="1 % VaR, historical simulation")
+NAVY, BLUE, GREY = ps.PALETTE[0], ps.PALETTE[1], ps.PALETTE[2]
+ORANGE = ps.PALETTE[3]
+fig, axes = ps.figure()
+ax = axes[0][0]
+ax.bar(x, p / 1000, color=[BLUE if v >= 0 else NAVY for v in p], width=1.0, alpha=0.6)
+ax.plot(x, -v5 / 1000, color=GREY, lw=0.9)
+ax.plot(x, -v1 / 1000, color=NAVY, lw=1.0)
+ax.plot(x, -hs / 1000, color=GREY, lw=0.9, ls="--")
 hit = p < -v1
-ax.scatter(x[hit.to_numpy()], p[hit] / 1000, marker="v", color="#c0392b", zorder=3, label="1 % exception")
-ax.axhline(-5, color="#c0392b", lw=0.8, ls=":")
-ax.text(x[5], -5.25, "daily loss limit, EUR 5,000", fontsize=8, color="#c0392b", va="top")
-ax.axvline(pd.Timestamp("2026-03-04"), color=NAVY, lw=0.8, ls=":")
-ax.set_ylabel("kEUR per Copenhagen day")
-ax.set_title("DK1 hold-into-imbalance (persistence, 15 min, ≤ 10 MW): VaR backtest (replay, not the record)", loc="left")
-ax.legend(loc="lower left", frameon=False, ncol=3, fontsize=8)
-fig.text(0.01, 0.005, "Estimated vintages; first 120 days are the estimation window. Data: Energinet, Energi Data Service.", fontsize=8, color=GREY)
-fig.tight_layout()
-fig.savefig("12_risk.png", dpi=150, bbox_inches="tight")"""
+ax.scatter(x[hit.to_numpy()], p[hit] / 1000, marker="v", s=14, color=ORANGE, zorder=3)
+ps.ref_line(ax, -5, "daily loss limit, EUR 5,000", side="left")
+ps.event_rule(ax, pd.Timestamp("2026-03-04"), "4 Mar 2026")
+ps.frame(
+    fig,
+    title=(
+        f"Persistence's daily P&L breached its 1 % garch-evt VaR on {int(hit.sum())} of {len(p)} "
+        "replay days (replay, not the record)"
+    ),
+    subtitle=(
+        "DK1 hold-into-imbalance, persistence, 15 min ahead, at most 10 MW. Bars: daily net P&L "
+        "(blue gain, navy loss); lines: VaR drawn as a loss; triangles: days the loss exceeded the "
+        "1 % VaR. The first 120 days are the estimation window. Estimated vintages."
+    ),
+    units="kEUR",
+    cadence="daily",
+    source=f"{ATTRIBUTION} (calls from jobs/layer_calls.py)",
+    licence=LICENCE,
+    asof="2026-09-30",  # the replay window ends here
+    xlabel="Copenhagen day",
+    ylabel="Net P&L per Copenhagen day (kEUR)",
+    margins=(0.65, 1.45, 0.2, 0.5),
+)
+ps.date_axis(ax)
+ends = [(x[-1], float(-v5.iloc[-1] / 1000), "5 % VaR, garch-evt", GREY),
+        (x[-1], float(-v1.iloc[-1] / 1000), "1 % VaR, garch-evt", NAVY),
+        (x[-1], float(-hs.iloc[-1] / 1000), "1 % VaR, hist. simulation", GREY),
+        (x[-1], float(p.iloc[-1] / 1000), "Daily net P&L", BLUE)]
+dys = label_offsets(ax, [e[1] for e in ends], gap_pt=10)
+for (xe, ye, text, colour), dy in zip(ends, dys, strict=True):
+    name_label(ax, xe, ye, text, color=colour, dy=dy)
+name_label(ax, x[hit.to_numpy()][-1], float(p[hit].iloc[-1] / 1000) - 1.0, "1 %\\nexceptions", color=ORANGE)  # two lines: clear of the September spike
+ps.show(fig)
+ps.save(fig, "12_risk", formats=("pdf", "png", "tex"))"""
     ),
     md("## Stress (notes/scenarios.yaml), under the EUR 5,000 daily limit"),
     code(

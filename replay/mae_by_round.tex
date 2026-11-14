@@ -1,0 +1,8 @@
+% Written by paper_style.save; edit the figure code, not this file.
+% Needs \usepackage{graphicx,amssymb,textcomp} in the preamble.
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\linewidth]{mae_by_round.pdf}
+  \caption{Adding mean reversion to persistence cut the 15-minute error by 17\% to 21\% in each replay round both ran. Mean absolute error of the 15-minute call by replay round, each method from the round it entered. AR(1) is persistence plus mean reversion; Linear is a linear model on lags and calendar; Yesterday and Last week repeat the same quarter-hour of the day before and the week before. The replay runs on estimated data vintages and is not the live record. Units: MW; quarterly. Source: Energinet, Energi Data Service (replay/scorecard.csv, h = 15 min); CC BY 4.0; as of 2026-09-30.}
+  \label{fig:mae-by-round}
+\end{figure*}

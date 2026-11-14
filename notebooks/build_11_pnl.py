@@ -34,23 +34,14 @@ cells = [
     code(
         """from pathlib import Path
 
-import matplotlib.pyplot as plt
 import pandas as pd
 
+from nordcast import paper_style as ps
 from nordcast import pnl, positions
+from nordcast.figure_utils import ATTRIBUTION, LICENCE, label_offsets
 from nordcast.layers.backtest import fractionate
 
 D = Path("../data/layers")
-NAVY, BLUE, GREY, BAND = "#0F2A4A", "#1F5FBF", "#7D8996", "#DCE3EC"
-plt.rcParams.update(
-    {
-        "figure.figsize": (10, 4),
-        "axes.spines.top": False,
-        "axes.spines.right": False,
-        "axes.grid": True,
-        "grid.color": BAND,
-    }
-)
 LABEL = {"forecast": "ar(1)", "persistence": "persistence (control)"}
 
 runs, rows = {}, []
@@ -109,27 +100,59 @@ frac["persistence (control)"].round(3)"""
         "Code reference, kept out of git) treats a dual-axis overlay as a checklist, not evidence."
     ),
     code(
-        """fig, (top, bottom) = plt.subplots(2, 1, figsize=(11, 6), sharex=True, gridspec_kw={"height_ratios": [3, 2]})
+        """NAVY, BLUE, GREY = ps.PALETTE[0], ps.PALETTE[1], ps.PALETTE[2]
+CPH = "Europe/Copenhagen"
+fig, axes = ps.figure(2, 1, height_ratios=[3, 2])
+top, bottom = axes[0][0], axes[1][0]
+cums = {}
 for name, colour, ls in (("forecast", BLUE, "-"), ("persistence", GREY, "--")):
     frame, c = runs[(15, name)]
-    cum = frame.net.fillna(0).cumsum()
-    top.plot(cum.index.tz_convert("Europe/Copenhagen"), cum / 1000, color=colour, ls=ls, lw=1.2, label=LABEL[name])
+    cums[name] = frame.net.fillna(0).cumsum() / 1000
+    top.plot(cums[name].index.tz_convert(CPH), cums[name], color=colour, ls=ls, lw=1.0)
 top.axhline(0, color=GREY, lw=0.6)
-top.axvline(pd.Timestamp("2026-03-04", tz="Europe/Copenhagen"), color=NAVY, lw=0.8, ls=":")
-top.text(pd.Timestamp("2026-03-06", tz="Europe/Copenhagen"), top.get_ylim()[1] * 0.92, "4 Mar 2026: activated, not demand", fontsize=8, color=NAVY)
-top.set_ylabel("cumulative net P&L, kEUR")
-top.set_title("DK1 hold-into-imbalance, 15 min ahead, ≤ 10 MW (replay, not the record)", loc="left")
-top.legend(loc="upper left", frameon=False)
 _, c = runs[(15, "forecast")]
-month = c.target.dt.tz_convert("Europe/Copenhagen").dt.tz_localize(None).dt.to_period("M")
+month = c.target.dt.tz_convert(CPH).dt.tz_localize(None).dt.to_period("M")
+maes = {}
 for col, colour, ls, lab in (("point", BLUE, "-", "ar(1)"), ("pers_point", GREY, "--", "persistence")):
     m = (c[col] - c.y).abs().groupby(month.to_numpy()).mean()
-    bottom.plot(m.index.to_timestamp().tz_localize("Europe/Copenhagen") + pd.Timedelta(days=14), m, color=colour, ls=ls, marker="o", ms=3, label=lab)
-bottom.set_ylabel("MAE by month, MW")
-bottom.legend(loc="upper right", frameon=False, ncol=2)
-fig.text(0.01, 0.005, "Estimated vintages; slippage EUR 2/MWh assumed. Data: Energinet, Energi Data Service.", fontsize=8, color=GREY)
-fig.tight_layout()
-fig.savefig("11_pnl.png", dpi=150, bbox_inches="tight")"""
+    maes[lab] = m
+    bottom.plot(m.index.to_timestamp().tz_localize(CPH) + pd.Timedelta(days=14), m, color=colour, ls=ls, marker="o", ms=2.5)
+ps.frame(
+    fig,
+    title=(
+        f"Holding into imbalance 15 min ahead made ar(1) {cums['forecast'].iloc[-1]:+.0f} kEUR net and "
+        f"persistence {cums['persistence'].iloc[-1]:+.0f} kEUR over the replay year (replay, not the record)"
+    ),
+    subtitle=(
+        "(a) Cumulative net P&L, at most 10 MW held per quarter-hour, slippage EUR 2/MWh assumed; "
+        "rule: 4 Mar 2026, when SatisfiedDemand changed from demand to activated energy. "
+        "(b) Mean absolute error of the call by month. Estimated vintages."
+    ),
+    units=["kEUR", "MW"],
+    cadence="quarter-hourly",
+    source=f"{ATTRIBUTION} (calls from jobs/layer_calls.py)",
+    licence=LICENCE,
+    asof="2026-09-30",  # the replay window ends here
+    xlabel="Date, Copenhagen time",
+    ylabel=["Cumulative net P&L (kEUR)", "Mean absolute error by month (MW)"],
+    margins=(0.65, 1.1, 0.2, 0.5),
+)
+ps.event_rule(top, pd.Timestamp("2026-03-04", tz=CPH), "4 Mar 2026")
+ps.date_axis(bottom)
+for ax, items in (
+    (top, [(cums["forecast"], "ar(1)", BLUE), (cums["persistence"], "Persistence", GREY)]),
+    (bottom, [(maes["ar(1)"], "ar(1)", BLUE), (maes["persistence"], "Persistence", GREY)]),
+):
+    ends = []
+    for s, _, _ in items:
+        s = s.dropna()
+        idx = s.index.tz_convert(CPH) if ax is top else s.index.to_timestamp().tz_localize(CPH) + pd.Timedelta(days=14)
+        ends.append((idx[-1], float(s.iloc[-1])))
+    dys = label_offsets(ax, [y for _, y in ends], gap_pt=10)
+    for (s, text, colour), (x, y), dy in zip(items, ends, dys, strict=True):
+        ps.end_label(ax, x, y, text, f"{y:.0f}", color=colour, dy=dy)
+ps.show(fig)
+ps.save(fig, "11_pnl", formats=("pdf", "png", "tex"))"""
     ),
     md(
         "## What this P&L is and isn't\n\n"

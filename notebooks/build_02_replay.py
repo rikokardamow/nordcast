@@ -1,75 +1,38 @@
-"""Draws replay/mae_by_round.png from replay/scorecard.csv.
+"""Draws replay/mae_by_round (.pdf, .png, .tex) from replay/scorecard.csv.
 
     uv run --group reports python notebooks/build_02_replay.py
 
 One line per method, from the round it entered, for the 15-minute horizon.
-Reads nothing but the CSV. The replay runs on estimated data vintages, so it
+Reads nothing but the CSV. The title, units and source go to the .tex caption, not
+the image (nordcast.paper_style, docs/FIGURES.md). The replay runs on estimated data vintages, so it
 is a rehearsal, not the live record.
 """
 
 import csv
-import itertools
-from datetime import date
 from pathlib import Path
 
-import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+from nordcast import paper_style as ps
+from nordcast.figure_utils import ATTRIBUTION, LICENCE, label_offsets
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "replay" / "scorecard.csv"
-OUT = ROOT / "replay" / "mae_by_round.png"
+OUT = ROOT / "replay" / "mae_by_round"
 HORIZON = "15"
+ASOF = "2026-09-30"  # the last day of the last replay round (2026q3)
 
-TEXT, MUTED, BAND = "#0B1F3A", "#5B6878", "#DCE3EC"
-NAVY, BLUE, GREY = "#0F2A4A", "#1F5FBF", "#7D8996"
-
-# method id in the CSV -> (plain name, colour, line style)
+# method id in the CSV -> (short name for the end label, colour, line style)
 METHODS = {
-    "persistence": ("persistence (the last quarter-hour repeats)", GREY, "-"),
-    "persistence_ar1": ("persistence plus mean reversion, AR(1)", NAVY, "-"),
-    "linear_lags_calendar": ("linear model on lags and calendar", BLUE, "-"),
-    "seasonal_naive_day": ("same quarter-hour yesterday", GREY, ":"),
-    "seasonal_naive_week": ("same quarter-hour last week", GREY, "--"),
+    "persistence": ("Persistence", ps.PALETTE[2], "-"),
+    "persistence_ar1": ("AR(1)", ps.PALETTE[0], "-"),
+    "linear_lags_calendar": ("Linear", ps.PALETTE[1], "-"),
+    "seasonal_naive_day": ("Yesterday", ps.PALETTE[2], ":"),
+    "seasonal_naive_week": ("Last week", ps.PALETTE[2], "--"),
 }
-
-plt.rcParams.update(
-    {
-        "font.family": "sans-serif",
-        "font.sans-serif": ["Helvetica Neue", "Helvetica", "Arial", "DejaVu Sans"],
-        "figure.facecolor": "white",
-        "axes.facecolor": "white",
-        "axes.edgecolor": BAND,
-        "axes.labelcolor": MUTED,
-        "axes.spines.top": False,
-        "axes.spines.right": False,
-        "axes.grid": True,
-        "axes.grid.axis": "y",
-        "grid.color": BAND,
-        "grid.linewidth": 0.5,
-        "xtick.color": MUTED,
-        "ytick.color": MUTED,
-        "text.color": TEXT,
-        "font.size": 9,
-        "lines.linewidth": 1.4,
-    }
-)
 
 
 def round_label(r):
     """'2026q1' -> 'Q1 2026'."""
     return f"Q{r[-1]} {r[:4]}"
-
-
-def spread(values, gap):
-    """Nudge label positions apart so none sit closer than `gap`."""
-    order = sorted(range(len(values)), key=lambda i: values[i])
-    out = list(values)
-    for a, b in itertools.pairwise(order):
-        if out[b] - out[a] < gap:
-            out[b] = out[a] + gap
-    return out
 
 
 def main():
@@ -86,64 +49,45 @@ def main():
         if r in series.get("persistence_ar1", {}) and r in series["persistence"]
     ]
 
-    fig, ax = plt.subplots(figsize=(10, 4.8))
-    fig.subplots_adjust(left=0.07, right=0.68, top=0.83, bottom=0.12)
-    fig.text(
-        0.01,
-        0.97,
-        "Replay: mean absolute error of the 15-minute call, by round",
-        ha="left",
-        va="top",
-        fontsize=12,
-        fontweight="bold",
-    )
-    fig.text(
-        0.01,
-        0.915,
-        f"MW. Each method is shown from the round it entered. Adding mean "
-        f"reversion to persistence cut the error by {min(gains):.0%} to {max(gains):.0%} "
-        "in each round both ran.",
-        ha="left",
-        va="top",
-        fontsize=9.5,
-        color=MUTED,
-    )
-
+    fig, axes = ps.figure()
+    ax = axes[0][0]
     ends = []
     for method, (name, colour, style) in METHODS.items():
         pts = sorted((x[r], v) for r, v in series.get(method, {}).items())
         if not pts:
             continue
         xs, ys = zip(*pts, strict=True)
-        ax.plot(xs, ys, color=colour, ls=style, marker="o", ms=3.5)
-        ends.append((ys[-1], f"{name}, {ys[-1]:.0f} MW"))
-    for y_label, (_, text) in zip(
-        spread([e[0] for e in ends], gap=6), ends, strict=True
-    ):
-        ax.text(
-            len(rounds) - 1 + 0.08,
-            y_label,
-            text,
-            va="center",
-            color=TEXT,
-            fontsize=8.5,
-            clip_on=False,
-        )
-
+        ax.plot(xs, ys, color=colour, ls=style, marker="o", ms=3)
+        ends.append((xs[-1], ys[-1], name, colour))
     ax.set_xticks(range(len(rounds)), [round_label(r) for r in rounds])
     ax.set_xlim(-0.3, len(rounds) - 0.7)
-    ax.set_ylabel("MW")
-    ax.tick_params(length=0)
-    fig.text(
-        0.01,
-        0.02,
-        "Source: Energinet, Energi Data Service, CC BY 4.0. Replay on estimated "
-        f"data vintages, not the live record. {date.today():%-d %b %Y}.",
-        fontsize=8,
-        color=MUTED,
+    ps.frame(
+        fig,
+        title=(
+            f"Adding mean reversion to persistence cut the 15-minute error by "
+            f"{min(gains):.0%} to {max(gains):.0%} in each replay round both ran"
+        ),
+        subtitle=(
+            "Mean absolute error of the 15-minute call by replay round, each method from the "
+            "round it entered. AR(1) is persistence plus mean reversion; Linear is a linear "
+            "model on lags and calendar; Yesterday and Last week repeat the same quarter-hour "
+            "of the day before and the week before. The replay runs on estimated data "
+            "vintages and is not the live record."
+        ),
+        units="MW",
+        cadence="quarterly",
+        source=f"{ATTRIBUTION} (replay/scorecard.csv, h = 15 min)",
+        licence=LICENCE,
+        asof=ASOF,
+        xlabel="Replay round (calendar quarter)",
+        ylabel="Mean absolute error (MW)",
+        margins=(0.6, 1.0, 0.2, 0.5),
     )
-    fig.savefig(OUT, dpi=150)
-    print(f"wrote {OUT.relative_to(ROOT)}")
+    dys = label_offsets(ax, [e[1] for e in ends], gap_pt=9)
+    for (xe, ye, name, colour), dy in zip(ends, dys, strict=True):
+        ps.end_label(ax, xe, ye, name, f"{ye:.0f} MW", color=colour, dy=dy)
+    ps.save(fig, OUT, formats=("pdf", "png", "tex"))
+    print(f"wrote {OUT.relative_to(ROOT)}.(pdf|png|tex)")
 
 
 if __name__ == "__main__":
