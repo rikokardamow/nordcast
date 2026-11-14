@@ -121,7 +121,7 @@ ends = [(x[-1], float(-v5.iloc[-1] / 1000), "5 % VaR, garch-evt", GREY),
 dys = label_offsets(ax, [e[1] for e in ends], gap_pt=10)
 for (xe, ye, text, colour), dy in zip(ends, dys, strict=True):
     name_label(ax, xe, ye, text, color=colour, dy=dy)
-name_label(ax, x[hit.to_numpy()][-1], float(p[hit].iloc[-1] / 1000) - 1.0, "1 % exceptions", color=ORANGE)
+name_label(ax, x[hit.to_numpy()][-1], float(p[hit].iloc[-1] / 1000) - 1.0, "1 %\\nexceptions", color=ORANGE)  # two lines: clear of the September spike
 ps.show(fig)
 ps.save(fig, "12_risk", formats=("pdf", "png", "tex"))"""
     ),

@@ -7,6 +7,8 @@ from landing on top of each other.
 
 import itertools
 
+from nordcast import paper_style as ps
+
 # Energinet asks for attribution under CC BY 4.0 (notes/controls.md).
 ATTRIBUTION = "Energinet, Energi Data Service"
 LICENCE = "CC BY 4.0"
@@ -47,7 +49,8 @@ def name_label(ax, x, y, text, *, color, dy=0):
     """A direct label at the end of a line, with no value (`ps.end_label` always adds one).
 
     Same look as `ps.end_label`: 7.5 pt, in the line's colour, 6 points right of the end,
-    shifted `dy` points up. `text` may hold a line break.
+    shifted `dy` points up, with the same white halo so it reads over lines and fills.
+    `text` may hold a line break.
     """
     ax.annotate(
         text,
@@ -59,4 +62,6 @@ def name_label(ax, x, y, text, *, color, dy=0):
         fontsize=7.5,
         color=color,
         annotation_clip=False,
+        path_effects=ps.halo(),
+        zorder=6,
     )

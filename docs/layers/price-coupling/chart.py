@@ -53,8 +53,10 @@ for i, (col, label, color) in enumerate(bars):
         x + (i - 1) * 0.27, 100 * check[col], width=0.27, color=color, label=label
     )
 bottom.set_xticks(x, check.border)
-bottom.set_ylim(0, 100)
-bottom.legend(loc="upper left", frameon=False, fontsize=7, ncol=1)
+# One legend row above the 100 % line, clear of the tallest bars (the sans type is wider).
+bottom.set_ylim(0, 112)
+bottom.set_yticks(range(0, 101, 20))
+bottom.legend(loc="upper left", frameon=False, fontsize=7, ncol=3, borderaxespad=0.2)
 
 ps.frame(
     fig,
